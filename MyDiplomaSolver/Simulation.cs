@@ -194,6 +194,11 @@ public class Simulation
 
         var ccl = 0;
         var ccr = right.Coefficients.C > 0 ? SpeedB : SpeedA;
+
+        var last = BorderCondition.Points[^1];
+        var prev = BorderCondition.Points[^2];
+        var phi = prev.Value;
+        var k = (last.Value - prev.Value) / (last.Time - prev.Time);
         
         Func<double[], double[]> equations = vars =>
         {
@@ -207,8 +212,8 @@ public class Simulation
         
             return
             [
-                - a,
-                - b,
+                phi + k * (t - prev.Time) - a,
+                k - b,
                 right.Coefficients.B + right.Coefficients.C * r - b - c * r,
                 r*r - (ccr * ccr * right.Coefficients.C - cci * cci * c) / (right.Coefficients.C - c),
             ];
@@ -220,16 +225,16 @@ public class Simulation
         // Начальное предположение
         var initialGuess = new[]
         {
-            0,
-            0,
-            -1/SpeedB,
-            SpeedB,
+            phi + k * (t - prev.Time),
+            k,
+            -k/SpeedA,
+            SpeedA,
         };
     
         // Решение системы методом Ньютона
         try
         {
-            var solution = Broyden.FindRoot(equations, initialGuess);
+            var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-06D);
 
             var waves = State.Waves.ToArray();
             var segments = State.Segments.ToArray();
@@ -240,7 +245,7 @@ public class Simulation
                 SourceId = NextSourceId(),
                 StartPosition = 0,
                 StartTime = t,
-                Velocity = -wave.Velocity
+                Velocity = solution[3]
             };
 
             segments[^1] = segments[^1] with

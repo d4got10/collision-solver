@@ -5,60 +5,6 @@ using MyDiplomaSolver;
 double a = 3702.77;
 double b = 2378.63;
 
-const int n = 5;
-
-double[] t = [0.0,  0.3,  0.5, 0.6, 0.8];
-double[] phii = [0.0, -4.5, -5.0, -4.0, 0.0];
-double[] k = [0.0, 0.0, 0.0, 0.0, 0.0];
-
-for (int i = 0; i < n; i++)
-{
-    t[i] *= 0.001;
-    phii[i] *= 0.001;
-}
-
-for (int i = 1; i < n; i++)
-{
-    k[i] = (phii[i] - phii[i - 1]) / (t[i] - t[i - 1]);
-}
-
-var coeffs = new Coefficients[5];
-coeffs[1] = new Coefficients
-{
-    A = 0,
-    B = k[1],
-    C = -k[1] / b,
-};
-
-coeffs[2] = new Coefficients
-{
-    A = phii[1],
-    B = k[2],
-    C = -k[2] / b,
-};
-
-double temp = (a / b + b / a);
-double R = temp * k[2] + Math.Sqrt(temp * temp * k[2] * k[2] - 4 * k[3] * (2 * k[2] - k[3]));
-
-double chislitel = k[2] / b;
-double znamenatel = k[2] / b - R / a;
-
-double sigma = Math.Sqrt(a * a - (a * a - b * b) * chislitel / znamenatel);
-
-coeffs[3] = new Coefficients
-{
-    A = k[2] * t[1] + phii[2],
-    B = k[2] * (1 - sigma / b) + R * sigma / a,
-    C = -R / a,
-};
-
-coeffs[4] = new Coefficients
-{
-    A = k[3] * (t[2] - t[1]) + phii[3],
-    B = k[3],
-    C = -k[3] / a,
-};
-
 var initialState = new SimulationState([], [ default ], -double.Epsilon);
 var borderConditions = new BorderCondition(
 [
@@ -85,7 +31,7 @@ do
     if(iterationSuccessful)
         history.Add(simulation.State);
     PrintState(simulation.State, iterationNumber);
-} while (iterationSuccessful && iterationNumber < 20);
+} while (iterationSuccessful && iterationNumber < 100);
 
 GenerateImage(history);
 
