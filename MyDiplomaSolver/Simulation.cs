@@ -188,20 +188,73 @@ public class Simulation
     {
         var wave = collision.Right;
         var t = collision.EncounterTime;
-        
-        var waves = State.Waves.ToArray();
-        var segments = State.Segments.ToArray();
-        
-        waves[wave.IndexInArray] = wave with
-        {
-            Id = NextId(),
-            SourceId = NextSourceId(),
-            StartPosition = 0,
-            StartTime = t,
-            Velocity = -wave.Velocity
-        };
+     
+        var middle = State.Segments[^1];
+        var right = State.Segments[^2];
 
-        return new SimulationState(Waves: waves, Segments: segments, Time: t);
+        var ccl = 0;
+        var ccr = right.Coefficients.C > 0 ? SpeedB : SpeedA;
+        
+        Func<double[], double[]> equations = vars =>
+        {
+            double a = vars[0]; // Ai
+            double b = vars[1]; // Bi
+            double c = vars[2]; // Ci
+
+            var cci = c >= 0 ? SpeedB : SpeedA;
+            
+            double r = vars[3]; // Ri
+        
+            return
+            [
+                - a,
+                - b,
+                right.Coefficients.B + right.Coefficients.C * r - b - c * r,
+                r*r - (ccr * ccr * right.Coefficients.C - cci * cci * c) / (right.Coefficients.C - c),
+            ];
+        };
+    
+        Console.WriteLine($"{ right.Coefficients.B + right.Coefficients.C } * r - b - c * r = 0");
+        Console.WriteLine($"r*r - ({ccr * ccr * right.Coefficients.C} - cci * cci * c) / ({right.Coefficients.C} - c) = 0");
+        
+        // Начальное предположение
+        var initialGuess = new[]
+        {
+            0,
+            0,
+            -1/SpeedB,
+            SpeedB,
+        };
+    
+        // Решение системы методом Ньютона
+        try
+        {
+            var solution = Broyden.FindRoot(equations, initialGuess);
+
+            var waves = State.Waves.ToArray();
+            var segments = State.Segments.ToArray();
+        
+            waves[wave.IndexInArray] = wave with
+            {
+                Id = NextId(),
+                SourceId = NextSourceId(),
+                StartPosition = 0,
+                StartTime = t,
+                Velocity = -wave.Velocity
+            };
+
+            segments[^1] = segments[^1] with
+            {
+                Coefficients = new Coefficients(solution[0], solution[1], solution[2])
+            };
+
+            return new SimulationState(Waves: waves, Segments: segments, Time: t);
+        }
+        catch
+        {
+            Console.WriteLine($"Broke on border collision between {wave.Id} and border");
+            throw;
+        }
     }
     
     private SimulationState ApplyDoubleWaveCollision(Collision collision)
