@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics.RootFinding;
+﻿using System.Diagnostics;
+using MathNet.Numerics.RootFinding;
 
 namespace MyDiplomaSolver;
 
@@ -6,14 +7,16 @@ public class Simulation
 {
     public const double CollisionTimeThreshold = 100_000;
     
-    public Simulation(SimulationState initialState, double speedA, double speedB)
+    public Simulation(SimulationState initialState, BorderCondition borderCondition, double speedA, double speedB)
     {
         State = initialState;
+        BorderCondition = borderCondition;
         SpeedA = speedA;
         SpeedB = speedB;
     }
     
     public SimulationState State { get; private set; }
+    public BorderCondition BorderCondition { get; }
     public double SpeedA { get; private set; }
     public double SpeedB { get; private set; }
 
@@ -24,16 +27,40 @@ public class Simulation
 
     public bool Iterate()
     {
+        var nextConditionPointTime = GetNextBorderConditionPointTime();
         var collisions = CalculateCollision().ToArray();
         if (collisions.Length == 0)
         {
+            if (!double.IsPositiveInfinity(nextConditionPointTime))
+            {
+                State = ApplyNextBorderConditionPoint(nextConditionPointTime);
+                return true;
+            }
+            
             Console.WriteLine("No collisions. Terminating...");
             return false;
         }
         
         Console.WriteLine($"Collision count: {collisions.Length}");
         var collision = collisions.MinBy(c => c.EncounterTime);
-        State = ApplyCollision(collision);
+
+        if (nextConditionPointTime < collision.EncounterTime)
+        {
+            State = ApplyNextBorderConditionPoint(nextConditionPointTime);
+        }
+        else
+        {
+            try
+            {
+                State = ApplyCollision(collision);
+            }
+            catch(Exception exception)
+            {
+                Console.WriteLine($"Получена ошибка при расчёте столкновения волн: {exception.Message}");
+                return false;
+            }
+        }
+        
         return true;
     }
 
@@ -52,6 +79,111 @@ public class Simulation
         return ApplyDoubleWaveCollision(collision);
     }
 
+    private SimulationState ApplyNextBorderConditionPoint(double time)
+    {
+        var (leftPoint, rightPoint) = GetBorderConditionPoints(time);
+        Console.WriteLine($"Applying border condition between {leftPoint.Time} and {rightPoint.Time}");
+        
+        var right = State.Segments[^1];
+
+        var ccl = 0;
+        var ccr = right.Coefficients.C > 0 ? SpeedB : SpeedA;
+
+        var phi = leftPoint.Value;
+        var k = (rightPoint.Value - leftPoint.Value) / (rightPoint.Time - leftPoint.Time);
+        
+        Func<double[], double[]> equations = vars =>
+        {
+            double a = vars[0]; // Ai
+            double b = vars[1]; // Bi
+            double c = vars[2]; // Ci
+
+            var cci = c >= 0 ? SpeedB : SpeedA;
+            
+            double r = vars[3]; // Ri
+        
+            return
+            [
+                phi + k * (time - leftPoint.Time) - a,
+                k - b,
+                right.Coefficients.B + right.Coefficients.C * r - b - c * r,
+                r*r - (ccr * ccr * right.Coefficients.C - cci * cci * c) / (right.Coefficients.C - c),
+            ];
+        };
+    
+        Console.WriteLine($"{ right.Coefficients.B + right.Coefficients.C } * r - b - c * r = 0");
+        Console.WriteLine($"r*r - ({ccr * ccr * right.Coefficients.C} - cci * cci * c) / ({right.Coefficients.C} - c) = 0");
+        
+        // Начальное предположение
+        var initialGuess = new[]
+        {
+            phi + k * (time - leftPoint.Time),
+            k,
+            -k/SpeedB,
+            SpeedB,
+        };
+    
+        // Решение системы методом Ньютона
+        try
+        {
+            var solution = Broyden.FindRoot(equations, initialGuess);
+
+            var wave = new Wave
+            {
+                Id = NextId(),
+                IndexInArray = State.Waves.Length,
+                SourceId = NextSourceId(),
+                StartPosition = 0,
+                StartTime = time,
+                Velocity = solution[3]
+            };
+
+            var segment = new Segment
+            {
+                Left = default,
+                Right = wave,
+                Coefficients = new Coefficients(solution[0], solution[1], solution[2])
+            };
+
+            var waves = State.Waves.Append(wave).ToArray();
+            var segments = State.Segments.Append(segment).ToArray();
+
+            segments[^2] = segments[^2] with
+            {
+                Left = wave 
+            };
+
+            return new SimulationState(waves, segments, time);
+        }
+        catch
+        {
+            Console.WriteLine($"Broke on border condition between {leftPoint.Time} and {rightPoint.Time}");
+            throw;
+        }
+    }
+
+    private double GetNextBorderConditionPointTime()
+    {
+        if (BorderCondition.Points[^2].Time <= State.Time)
+        {
+            return double.PositiveInfinity;
+        }
+        
+        var point = BorderCondition.Points.First(x => x.Time > State.Time);
+        return point.Time;
+    }
+    
+    private (BorderConditionPoint Left, BorderConditionPoint Right) GetBorderConditionPoints(double time)
+    {
+        var right = BorderCondition.Points.FirstOrDefault(x => x.Time > time);
+        if (right == default)
+        {
+            right = new BorderConditionPoint(double.PositiveInfinity, 0);
+        }
+        var left = BorderCondition.Points.Last(x => x.Time <= time);
+        return (left, right);
+    }
+    
     private SimulationState ApplyBorderWaveCollision(Collision collision)
     {
         var wave = collision.Right;
@@ -133,8 +265,8 @@ public class Simulation
         var ccl = left.Coefficients.C > 0 ? SpeedB : SpeedA;
         var ccr = right.Coefficients.C > 0 ? SpeedB : SpeedA;
 
-        var leftWave = middle.Left;
-        var rightWave = middle.Right;
+        var leftWave = State.Waves[middle.Left.IndexInArray];
+        var rightWave = State.Waves[middle.Right.IndexInArray];
         
         Console.WriteLine($"Getting solution for collision between {leftWave.Id} and {rightWave.Id}");
         
@@ -155,9 +287,10 @@ public class Simulation
                 left.Coefficients.B + left.Coefficients.C * l - b - c * l,
                 right.Coefficients.B + right.Coefficients.C * r - b - c * r,
                 l*l - (ccl * ccl * left.Coefficients.C - cci * cci * c) / (left.Coefficients.C - c),
-                r*r - (ccr * ccr * left.Coefficients.C - cci * cci * c) / (left.Coefficients.C - c),
+                r*r - (ccr * ccr * right.Coefficients.C - cci * cci * c) / (right.Coefficients.C - c),
             ];
         };
+        
     
         // Начальное предположение
         var initialGuess = new[]
@@ -168,11 +301,50 @@ public class Simulation
             -(SpeedA + SpeedB) / 2,
             (SpeedA + SpeedB) / 2,
         };
-    
+
+        double[] speeds = [SpeedA, SpeedB, (SpeedA + SpeedB) / 2];
+        
         // Решение системы методом Ньютона
+        foreach (var speedA in speeds)
+        {
+            foreach (var speedB in speeds)
+            {
+                try
+                {
+                    initialGuess[3] = -speedA;
+                    initialGuess[4] = speedB;
+
+                    var solution = Broyden.FindRoot(equations, initialGuess);
+
+                    var cci = solution[2] > 0 ? SpeedB : SpeedA;
+                    var li = Math.Abs(solution[3]);
+                    var ri = Math.Abs(solution[4]);
+
+                    // Debug.Assert(ccl <= li && li <= cci, $"Скорость левой границы не выполнило условие c(Cl) [{ccl}] <= Li [{li}] <= c(Ci) [{cci}]");
+                    // Debug.Assert(ccr <= ri && ri <= cci, $"Скорость правой границы не выполнило условие c(Cr) [{ccr}] <= Ri [{ri}] <= c(Ci) [{cci}]");
+
+                    return solution;
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+        }
+        
+        Console.WriteLine($"Broke on collision between {leftWave.Id} and {rightWave.Id}");
+        throw new Exception();
+        
         try
         {
-            var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-09D);
+            var solution = Broyden.FindRoot(equations, initialGuess);
+            
+            var cci = solution[2] > 0 ? SpeedB : SpeedA;
+            var li = Math.Abs(solution[3]);
+            var ri = Math.Abs(solution[4]);
+            
+            // Debug.Assert(ccl <= li && li <= cci, $"Скорость левой границы не выполнило условие c(Cl) [{ccl}] <= Li [{li}] <= c(Ci) [{cci}]");
+            // Debug.Assert(ccr <= ri && ri <= cci, $"Скорость правой границы не выполнило условие c(Cr) [{ccr}] <= Ri [{ri}] <= c(Ci) [{cci}]");
+            
             return solution;
         }
         catch
@@ -184,6 +356,11 @@ public class Simulation
 
     private IEnumerable<Collision> CalculateCollision()
     {
+        if (State.Waves.Length == 0)
+        {
+            yield break;
+        }
+        
         if (CheckCollisionWithBorder(State.Waves[^1], out var collision))
         {
             yield return collision;

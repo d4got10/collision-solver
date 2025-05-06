@@ -7,14 +7,14 @@ double b = 2378.63;
 
 const int n = 5;
 
-double[] t = [0.0,  0.3,  0.5, 0.7, 0.9];
-double[] phii = [0.0, -3.0, -4.0, 0.0, 0.0];
+double[] t = [0.0,  0.3,  0.5, 0.6, 0.8];
+double[] phii = [0.0, -4.5, -5.0, -4.0, 0.0];
 double[] k = [0.0, 0.0, 0.0, 0.0, 0.0];
 
 for (int i = 0; i < n; i++)
 {
-    t[i] *= 0.0001;
-    phii[i] *= 0.0001;
+    t[i] *= 0.001;
+    phii[i] *= 0.001;
 }
 
 for (int i = 1; i < n; i++)
@@ -22,7 +22,7 @@ for (int i = 1; i < n; i++)
     k[i] = (phii[i] - phii[i - 1]) / (t[i] - t[i - 1]);
 }
 
-var coeffs = new Coefficients[4];
+var coeffs = new Coefficients[5];
 coeffs[1] = new Coefficients
 {
     A = 0,
@@ -47,75 +47,31 @@ double sigma = Math.Sqrt(a * a - (a * a - b * b) * chislitel / znamenatel);
 
 coeffs[3] = new Coefficients
 {
-    A = k[2] * t[1] + phii[1],
+    A = k[2] * t[1] + phii[2],
     B = k[2] * (1 - sigma / b) + R * sigma / a,
-    C = -k[0] / b,
+    C = -R / a,
 };
 
-var waves = new Wave[]
+coeffs[4] = new Coefficients
 {
-    new()
-    {
-        IndexInArray = 0,
-        SourceId = Simulation.NextSourceId(),
-        Id = Simulation.NextId(),
-        StartPosition = 0,
-        StartTime = t[0],
-        Velocity = b,
-    },
-    new()
-    {
-        IndexInArray = 1,
-        SourceId = Simulation.NextSourceId(),
-        Id = Simulation.NextId(),
-        StartPosition = 0,
-        StartTime = t[1],
-        Velocity = b,
-    },
-    new()
-    {
-        IndexInArray = 2,
-        SourceId = Simulation.NextSourceId(),
-        Id = Simulation.NextId(),
-        StartPosition = 0,
-        StartTime = t[2],
-        Velocity = sigma,
-    }
+    A = k[3] * (t[2] - t[1]) + phii[3],
+    B = k[3],
+    C = -k[3] / a,
 };
 
-var segments = new Segment[]
-{
-    new()
-    {
-        Coefficients = new Coefficients(0, 0, 0),
-        Left = waves[0],
-        Right = default,
-    },
-    new()
-    {
-        Coefficients = coeffs[1],
-        Left = waves[1],
-        Right = waves[0],
-    },
-    new()
-    {
-        Coefficients = coeffs[2],
-        Left = waves[2],
-        Right = waves[1]
-    },
-    new()
-    {
-        Coefficients = coeffs[3], // зависит от граничного условия
-        Left = default,
-        Right = waves[2]
-    }
-};
+var initialState = new SimulationState([], [ default ], -double.Epsilon);
+var borderConditions = new BorderCondition(
+[
+    new BorderConditionPoint(0.0 * 0.001,  0.0 * 0.001),
+    new BorderConditionPoint(0.3 * 0.001, -4.5 * 0.001),
+    new BorderConditionPoint(0.5 * 0.001, -5.0 * 0.001),
+    new BorderConditionPoint(0.75 * 0.001, -1.5 * 0.001),
+    new BorderConditionPoint(0.8 * 0.001,  0.0 * 0.001),
+]);
 
-var initialState = new SimulationState(waves, segments, t[2]);
-var simulation = new Simulation(initialState, a, b);
+var simulation = new Simulation(initialState, borderConditions, a, b);
 
 List<SimulationState> history = new();
-history.Add(initialState);
 
 var iterationNumber = 0;
 bool iterationSuccessful;
@@ -161,6 +117,7 @@ void GenerateImage(List<SimulationState> history)
             var val = 127 + 128 * (x + 1) / colorsCount;
             return Color.FromArgb(val, val, val);
         })
+        .Reverse()
         .ToArray();
     
     using Bitmap bitmap = new Bitmap(width, height);
@@ -185,7 +142,7 @@ void GenerateImage(List<SimulationState> history)
         var position = y / (double)height * furthest;
         var state = GetState(time);
 
-        var cnt = state.Waves.Count(x => x.GetPosition(time) <= position);
+        var cnt = state.Waves.Count(x => x.GetPosition(time) >= position);
         return colors[cnt];
     }
 
