@@ -4,6 +4,8 @@ namespace MyDiplomaSolver;
 
 public class Simulation
 {
+    public const double CollisionTimeThreshold = 100_000;
+    
     public Simulation(SimulationState initialState, double speedA, double speedB)
     {
         State = initialState;
@@ -54,7 +56,11 @@ public class Simulation
     {
         var wave = collision.Right;
         var t = collision.EncounterTime;
-        var newWave = wave with
+        
+        var waves = State.Waves.ToArray();
+        var segments = State.Segments.ToArray();
+        
+        waves[wave.IndexInArray] = wave with
         {
             Id = NextId(),
             SourceId = NextSourceId(),
@@ -62,17 +68,8 @@ public class Simulation
             StartTime = t,
             Velocity = -wave.Velocity
         };
-        
-        var waves = State.Waves.Where(w => w.Id != wave.Id)
-            .Append(newWave)
-            .OrderBy(w => w.GetPosition(t))
-            .ToArray();
 
-        return State with
-        {
-            Waves = waves,
-            Time = t
-        };
+        return new SimulationState(Waves: waves, Segments: segments, Time: t);
     }
     
     private SimulationState ApplyDoubleWaveCollision(Collision collision)
@@ -108,7 +105,7 @@ public class Simulation
             SourceId = sourceId,
             StartTime = t,
             StartPosition = x,
-            Velocity = -solution[3]
+            Velocity = solution[3]
         };
 
         segments[leftWave.IndexInArray] = segments[leftWave.IndexInArray] with
@@ -147,7 +144,7 @@ public class Simulation
             double b = vars[1]; // Bi
             double c = vars[2]; // Ci
 
-            var cci = Math.Round(c) > 0 ? SpeedB : SpeedA;
+            var cci = c > 0 ? SpeedB : SpeedA;
             
             double l = vars[3]; // Li
             double r = vars[4]; // Ri
@@ -168,14 +165,14 @@ public class Simulation
             (left.Coefficients.A + right.Coefficients.A) / 2,
             (left.Coefficients.B + right.Coefficients.B) / 2,
             (left.Coefficients.C + right.Coefficients.C) / 2,
-            (SpeedA + SpeedB) / 2,
+            -(SpeedA + SpeedB) / 2,
             (SpeedA + SpeedB) / 2,
         };
     
         // Решение системы методом Ньютона
         try
         {
-            var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1, maxIterations: 100_000, jacobianStepSize: 0.1);
+            var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-09D);
             return solution;
         }
         catch
@@ -209,7 +206,11 @@ public class Simulation
             if (Math.Round(relativeVelocity, 6) < 0)
             {
                 var timeToCollision = (rightWavePosition - leftWavePosition) / -relativeVelocity;
-                yield return new Collision(leftWave, rightWave, State.Time + timeToCollision);
+
+                if (timeToCollision < CollisionTimeThreshold)
+                {
+                    yield return new Collision(leftWave, rightWave, State.Time + timeToCollision);
+                }
             }
         }
     }
