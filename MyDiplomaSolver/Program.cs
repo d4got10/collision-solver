@@ -89,6 +89,21 @@ void GenerateImage(List<SimulationState> history)
         var state = GetState(time);
 
         var cnt = state.Waves.Count(x => x.GetPosition(time) >= position);
+        var segment = state.Segments[cnt];
+
+        if (segment.Coefficients.C < 0)
+        {
+            return Color.FromArgb(255 - 30 * cnt, 0, 0);
+        }
+        else if (segment.Coefficients.C > 0)
+        {
+            return Color.FromArgb(0, 255 - 30 * cnt, 0);
+        }
+        else
+        {
+            return Color.White;
+        }
+        
         return colors[cnt];
     }
 
