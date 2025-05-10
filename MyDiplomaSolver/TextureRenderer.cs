@@ -7,6 +7,53 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
     public TextureRenderer(int width, int height) : this(width, height, Raylib.LoadRenderTexture(width, height))
     {
     }
+
+    public RenderTexture2D RenderBorderConditions(BorderConditions conditions)
+    {
+        const int borderOffset = 20;
+        const double multiplier = 0.001;
+
+        const double maxValue = 5 * multiplier;
+        const double minValue = -maxValue;
+
+        var lastTime = conditions.Points.Last().Time;
+        
+        Raylib.BeginTextureMode(target);
+        Raylib.ClearBackground(Color.White);
+        
+        Raylib.DrawLine(0, height / 2, width, height / 2, Color.Gray);
+        Raylib.DrawText($"U0(t)", borderOffset, 0, 36, Color.Black);
+
+        foreach (var point in conditions.Points)
+        {
+            var (x, y) = GetPosition(point.Value, point.Time);
+            Raylib.DrawCircle(x, y, 10, Color.Black);
+        }
+
+        for (int i = 0; i < conditions.Points.Length - 1; i++)
+        {
+            var point = conditions.Points[i];
+            var nextPoint = conditions.Points[i + 1];
+            var (x, y) = GetPosition(point.Value, point.Time);
+            var (nextX, nextY) = GetPosition(nextPoint.Value, nextPoint.Time);
+            
+            Raylib.DrawLine(x, y, nextX, nextY, Color.Black);
+        }
+        
+        Raylib.EndTextureMode();
+
+        return target;
+
+        (int, int) GetPosition(double value, double t)
+        {
+            var graphHeight = height - 2 * borderOffset;
+            var graphWidth = width - 2 * borderOffset;
+            
+            var xOffset = borderOffset + (int)(graphWidth * t / lastTime);
+            var yOffset = height / 2 - (int)(graphHeight / 2 * value / maxValue);
+            return (xOffset, yOffset);
+        }
+    }
     
     public RenderTexture2D RenderGraph(SimulationState[] history, double time)
     {

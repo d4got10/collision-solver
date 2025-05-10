@@ -7,7 +7,18 @@ public class App
 {
     public void Run()
     {
-        var history = RunSimulation();
+        var borderConditions = new BorderConditions(
+        [
+            new BorderConditionPoint(0.000 * 0.001,  0.0 * 0.001),
+            new BorderConditionPoint(0.125 * 0.001, -5.0 * 0.001),
+            new BorderConditionPoint(0.250 * 0.001, +5.0 * 0.001),
+            new BorderConditionPoint(0.375 * 0.001, -5.0 * 0.001),
+            new BorderConditionPoint(0.500 * 0.001, +5.0 * 0.001),
+            new BorderConditionPoint(0.625 * 0.001, -5.0 * 0.001),
+            new BorderConditionPoint(0.750 * 0.001,  0.0 * 0.001),
+        ]);
+        
+        var history = RunSimulation(borderConditions);
         
         var width = 1280;
         var height = 920;
@@ -29,6 +40,13 @@ public class App
         var graphTexture = graphRenderer.RenderGraph(history, history[^1].Time);
         var graphWidget = new RenderTextureWidget(graphTexture, 0, 0);
         widgets.Add(graphWidget);
+        
+        var borderConditionsWidth = width / 2;
+        var borderConditionsHeight = height / 2;
+        var borderConditionsRenderer = new TextureRenderer(borderConditionsWidth, borderConditionsHeight);
+        var borderConditionsTexture = borderConditionsRenderer.RenderBorderConditions(borderConditions);
+        var borderConditionsWidget = new RenderTextureWidget(borderConditionsTexture, width / 2, 0);
+        widgets.Add(borderConditionsWidget);
 
         int? selectedX = null; 
 
@@ -44,16 +62,22 @@ public class App
                 Raylib.DrawTextureRec(widget.Texture,  new Rectangle(0, 0, widget.Texture.Width, -widget.Texture.Height), new Vector2(widget.X, widget.Y), Color.White);
             }
 
+            var fromY = (int)(planeWidget.BoundingBox.Y);
+            var toY = (int)(fromY + planeWidget.BoundingBox.Height);
+            
+            if (selectedX is not null)
+            {
+                Raylib.DrawLine(selectedX.Value, fromY, selectedX.Value, toY, Color.Black);
+                var relativeX = (selectedX - planeWidget.BoundingBox.X) / planeWidget.BoundingBox.Width;
+                var lastTime = history[^1].Time * timeExtensionCoefficient;
+                var time = lastTime * relativeX;
+                
+                Raylib.DrawText($"T={time*1000:0.000}", selectedX.Value, fromY, 24, Color.Black);
+            }
+            
             if (planeWidget.BoundingBox.ContainsPoint(mousePosition))
             {
                 var x = (int)mousePosition.X;
-                var fromY = (int)(planeWidget.BoundingBox.Y);
-                var toY = (int)(fromY + planeWidget.BoundingBox.Height);
-
-                if (selectedX is not null)
-                {
-                    Raylib.DrawLine(selectedX.Value, fromY, selectedX.Value, toY, Color.Black);
-                }
                 
                 Raylib.DrawLine(x, fromY, x, toY, Color.Yellow);
 
@@ -74,23 +98,16 @@ public class App
         // Очистка ресурсов
         Raylib.UnloadRenderTexture(planeTexture);
         Raylib.UnloadRenderTexture(graphTexture);
+        Raylib.UnloadRenderTexture(borderConditionsTexture);
         Raylib.CloseWindow();
     }
 
-    private SimulationState[] RunSimulation()
+    private SimulationState[] RunSimulation(BorderConditions borderConditions)
     {
         double a = 3702.77;
         double b = 2378.63;
 
         var initialState = new SimulationState([], [ default ], -double.Epsilon);
-        var borderConditions = new BorderCondition(
-        [
-            new BorderConditionPoint(0.0 * 0.001,  0.0 * 0.001),
-            new BorderConditionPoint(0.25 * 0.001, -5 * 0.001),
-            new BorderConditionPoint(0.5 * 0.001, 5.0 * 0.001),
-            new BorderConditionPoint(0.75 * 0.001, -5 * 0.001),
-            new BorderConditionPoint(0.8 * 0.001,  0.0 * 0.001),
-        ]);
 
         var simulation = new Simulation(initialState, borderConditions, a, b);
 

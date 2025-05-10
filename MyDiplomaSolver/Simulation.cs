@@ -7,16 +7,16 @@ public class Simulation
 {
     public const double CollisionTimeThreshold = 100_000;
     
-    public Simulation(SimulationState initialState, BorderCondition borderCondition, double speedA, double speedB)
+    public Simulation(SimulationState initialState, BorderConditions borderConditions, double speedA, double speedB)
     {
         State = initialState;
-        BorderCondition = borderCondition;
+        BorderConditions = borderConditions;
         SpeedA = speedA;
         SpeedB = speedB;
     }
     
     public SimulationState State { get; private set; }
-    public BorderCondition BorderCondition { get; }
+    public BorderConditions BorderConditions { get; }
     public double SpeedA { get; private set; }
     public double SpeedB { get; private set; }
 
@@ -245,23 +245,23 @@ public class Simulation
 
     private double GetNextBorderConditionPointTime()
     {
-        if (BorderCondition.Points[^2].Time <= State.Time)
+        if (BorderConditions.Points[^2].Time <= State.Time)
         {
             return double.PositiveInfinity;
         }
         
-        var point = BorderCondition.Points.First(x => x.Time > State.Time);
+        var point = BorderConditions.Points.First(x => x.Time > State.Time);
         return point.Time;
     }
     
     private (BorderConditionPoint Left, BorderConditionPoint Right) GetBorderConditionPoints(double time)
     {
-        var right = BorderCondition.Points.FirstOrDefault(x => x.Time > time);
+        var right = BorderConditions.Points.FirstOrDefault(x => x.Time > time);
         if (right == default)
         {
             right = new BorderConditionPoint(double.PositiveInfinity, 0);
         }
-        var left = BorderCondition.Points.Last(x => x.Time <= time);
+        var left = BorderConditions.Points.Last(x => x.Time <= time);
         return (left, right);
     }
     
@@ -276,8 +276,8 @@ public class Simulation
         var ccl = 0;
         var ccr = right.Coefficients.C > 0 ? SpeedB : SpeedA;
 
-        var last = BorderCondition.Points[^1];
-        var prev = BorderCondition.Points[^2];
+        var last = BorderConditions.Points[^1];
+        var prev = BorderConditions.Points[^2];
         var phi = prev.Value;
         var k = (last.Value - prev.Value) / (last.Time - prev.Time);
         
