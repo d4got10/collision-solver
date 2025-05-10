@@ -20,7 +20,8 @@ public class App
             new BorderConditionPoint(1.000 * 0.001,  0.0 * 0.001),
         ]);
         
-        var history = RunSimulation(borderConditions);
+        bool hadErrors = false;
+        var history = RunSimulation(borderConditions, out hadErrors);
         
         var width = 1280;
         var height = 920;
@@ -50,7 +51,8 @@ public class App
         var borderConditionsWidget = new RenderTextureWidget(borderConditionsTexture, width / 2, 0);
         widgets.Add(borderConditionsWidget);
 
-        int? selectedX = null; 
+        int? selectedX = null;
+        int? draggingIndex = null;
 
         while (!Raylib.WindowShouldClose())
         {
@@ -93,8 +95,95 @@ public class App
                     graphRenderer.RenderGraph(history, time);
                 }
             }
+            
+            if (borderConditionsWidget.BoundingBox.ContainsPoint(mousePosition))
+            {
+                const int borderOffset = 20;
+                const double multiplier = 0.001;
 
-            Raylib.EndDrawing();
+                const double maxValue = 5 * multiplier;
+                const double minValue = -maxValue;
+
+                var lastTime = borderConditions.Points.Last().Time * 1.1;
+                
+                var x = (int)(mousePosition.X - borderConditionsWidget.X);
+                var y = (int)(mousePosition.Y - borderConditionsWidget.Y);
+                
+                Raylib.DrawLine(x, fromY, x, toY, Color.Yellow);
+
+                if (Raylib.IsMouseButtonPressed(MouseButton.Left) && draggingIndex is null)
+                {
+                    draggingIndex = borderConditions.Points
+                        .Select((b, i) =>
+                        {
+                            var p = GetPosition(b.Time);
+                            return (PointIndex: i, Distance: Math.Abs(p - x));
+                        })
+                        .MinBy(p => p.Distance)
+                        .PointIndex;
+                }
+
+                if (Raylib.IsMouseButtonDown(MouseButton.Left) && draggingIndex is not null)
+                {
+                    var newValue = GetValue(y);
+                    borderConditions.Points[draggingIndex.Value] = borderConditions.Points[draggingIndex.Value] with
+                    {
+                        Value = newValue
+                    };
+
+                    borderConditionsRenderer.RenderBorderConditions(borderConditions);
+                }
+
+                int GetPosition(double t)
+                {
+                    var width = borderConditionsWidget.BoundingBox.Width - 2 * borderOffset;
+                    var xOffset = borderOffset + (int)(width * t / lastTime);
+                    return xOffset;
+                }
+
+                double GetValue(int yValue)
+                {
+                    var height = borderConditionsWidget.BoundingBox.Height - 2 * borderOffset;
+                    var value = (-1) * (yValue - borderOffset - height / 2) / (height / 2) * maxValue;
+                    return Math.Clamp(value, minValue, maxValue);
+                }
+            }
+
+            if (hadErrors)
+            {
+                Raylib.DrawText("ERROR", planeWidget.X, planeWidget.Y + 24, 24, Color.Red);
+            }
+            
+            if (Raylib.IsMouseButtonReleased(MouseButton.Left))
+            {
+                if (draggingIndex is not null)
+                {
+                    draggingIndex = null;
+                    Raylib.DrawText("Simulating...", planeWidget.X, planeWidget.Y, 24, Color.Black);
+                    Raylib.EndDrawing();
+                    
+                    history = RunSimulation(borderConditions, out hadErrors);
+                    planeRenderer.RenderPlane(history, timeExtensionCoefficient);
+
+                    var time = 0.0;
+                    if (selectedX is not null)
+                    {
+                        var relativeX = (selectedX.Value - planeWidget.BoundingBox.X) / planeWidget.BoundingBox.Width;
+                        var lastTime = history[^1].Time * timeExtensionCoefficient;
+                        time = lastTime * relativeX;
+                    }
+                    
+                    graphRenderer.RenderGraph(history, time);
+                }
+                else
+                {
+                    Raylib.EndDrawing();
+                }
+            }
+            else
+            {
+                Raylib.EndDrawing();
+            }
         }
 
         // Очистка ресурсов
@@ -104,7 +193,7 @@ public class App
         Raylib.CloseWindow();
     }
 
-    private SimulationState[] RunSimulation(BorderConditions borderConditions)
+    private SimulationState[] RunSimulation(BorderConditions borderConditions, out bool hadErrors)
     {
         double a = 3702.77;
         double b = 2378.63;
@@ -127,8 +216,9 @@ public class App
             if(iterationSuccessful)
                 history.Add(simulation.State);
             LogState(simulation.State);
-        } while (iterationSuccessful && iterationNumber < 100);
+        } while (iterationSuccessful && iterationNumber < 10000);
 
+        hadErrors = simulation.HadErrors;
         return history.ToArray();
     }
     

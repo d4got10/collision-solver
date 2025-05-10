@@ -19,6 +19,7 @@ public class Simulation
     public BorderConditions BorderConditions { get; }
     public double SpeedA { get; private set; }
     public double SpeedB { get; private set; }
+    public bool HadErrors { get; private set; }
 
     private static Wave _borderWave = default;
 
@@ -27,6 +28,7 @@ public class Simulation
 
     public bool Iterate()
     {
+        HadErrors = false;
         var nextConditionPointTime = GetNextBorderConditionPointTime();
         var collisions = CalculateCollision().ToArray();
         if (collisions.Length == 0)
@@ -57,6 +59,7 @@ public class Simulation
             catch(Exception exception)
             {
                 Console.WriteLine($"Получена ошибка при расчёте столкновения волн: {exception.Message}");
+                HadErrors = true;
                 return false;
             }
         }
@@ -641,30 +644,35 @@ public class Simulation
         };
 
         double[] speeds = [SpeedA, SpeedB, (SpeedA + SpeedB) / 2];
+        double[] coefficients = [-(left.Coefficients.C + right.Coefficients.C) / 2, (left.Coefficients.C + right.Coefficients.C) / 2];
         
         // Решение системы методом Ньютона
         foreach (var speedA in speeds)
         {
             foreach (var speedB in speeds)
             {
-                try
+                foreach (var coef in coefficients)
                 {
-                    initialGuess[3] = -speedA;
-                    initialGuess[4] = speedB;
+                    try
+                    {
+                        initialGuess[2] = coef;
+                        initialGuess[3] = -speedA;
+                        initialGuess[4] = speedB;
 
-                    var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-06D);
+                        var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-06D);
 
-                    var cci = solution[2] > 0 ? SpeedB : SpeedA;
-                    var li = Math.Abs(solution[3]);
-                    var ri = Math.Abs(solution[4]);
+                        var cci = solution[2] > 0 ? SpeedB : SpeedA;
+                        var li = Math.Abs(solution[3]);
+                        var ri = Math.Abs(solution[4]);
 
-                    // Debug.Assert(ccl <= li && li <= cci, $"Скорость левой границы не выполнило условие c(Cl) [{ccl}] <= Li [{li}] <= c(Ci) [{cci}]");
-                    // Debug.Assert(ccr <= ri && ri <= cci, $"Скорость правой границы не выполнило условие c(Cr) [{ccr}] <= Ri [{ri}] <= c(Ci) [{cci}]");
+                        // Debug.Assert(ccl <= li && li <= cci, $"Скорость левой границы не выполнило условие c(Cl) [{ccl}] <= Li [{li}] <= c(Ci) [{cci}]");
+                        // Debug.Assert(ccr <= ri && ri <= cci, $"Скорость правой границы не выполнило условие c(Cr) [{ccr}] <= Ri [{ri}] <= c(Ci) [{cci}]");
 
-                    return solution;
-                }
-                catch (Exception ex)
-                {
+                        return solution;
+                    }
+                    catch (Exception ex)
+                    {
+                    }
                 }
             }
         }
