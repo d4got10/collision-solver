@@ -15,7 +15,9 @@ public class App
             new BorderConditionPoint(0.375 * 0.001, -5.0 * 0.001),
             new BorderConditionPoint(0.500 * 0.001, +5.0 * 0.001),
             new BorderConditionPoint(0.625 * 0.001, -5.0 * 0.001),
-            new BorderConditionPoint(0.750 * 0.001,  0.0 * 0.001),
+            new BorderConditionPoint(0.750 * 0.001, +5.0 * 0.001),
+            new BorderConditionPoint(0.875 * 0.001, -5.0 * 0.001),
+            new BorderConditionPoint(1.000 * 0.001,  0.0 * 0.001),
         ]);
         
         var history = RunSimulation(borderConditions);
@@ -28,21 +30,21 @@ public class App
 
         var timeExtensionCoefficient = 1.05;
         var planeWidth = width;
-        var planeHeight = height / 2;
+        var planeHeight = 3 * height / 4;
         var planeRenderer = new TextureRenderer(planeWidth, planeHeight);
         var planeTexture = planeRenderer.RenderPlane(history, timeExtensionCoefficient);
-        var planeWidget = new RenderTextureWidget(planeTexture, 0, height / 2);
+        var planeWidget = new RenderTextureWidget(planeTexture, 0, height / 4);
         widgets.Add(planeWidget);
 
         var graphWidth = width / 2;
-        var graphHeight = height / 2;
+        var graphHeight = height / 4;
         var graphRenderer = new TextureRenderer(graphWidth, graphHeight);
         var graphTexture = graphRenderer.RenderGraph(history, history[^1].Time);
         var graphWidget = new RenderTextureWidget(graphTexture, 0, 0);
         widgets.Add(graphWidget);
         
         var borderConditionsWidth = width / 2;
-        var borderConditionsHeight = height / 2;
+        var borderConditionsHeight = height / 4;
         var borderConditionsRenderer = new TextureRenderer(borderConditionsWidth, borderConditionsHeight);
         var borderConditionsTexture = borderConditionsRenderer.RenderBorderConditions(borderConditions);
         var borderConditionsWidget = new RenderTextureWidget(borderConditionsTexture, width / 2, 0);

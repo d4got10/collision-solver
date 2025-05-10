@@ -16,7 +16,7 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
         const double maxValue = 5 * multiplier;
         const double minValue = -maxValue;
 
-        var lastTime = conditions.Points.Last().Time;
+        var lastTime = conditions.Points.Last().Time * 1.1;
         
         Raylib.BeginTextureMode(target);
         Raylib.ClearBackground(Color.White);
@@ -30,7 +30,7 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
             Raylib.DrawCircle(x, y, 10, Color.Black);
         }
 
-        for (int i = 0; i < conditions.Points.Length - 1; i++)
+        for (int i = 0; i < conditions.Points.Length - 2; i++)
         {
             var point = conditions.Points[i];
             var nextPoint = conditions.Points[i + 1];
@@ -39,6 +39,19 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
             
             Raylib.DrawLine(x, y, nextX, nextY, Color.Black);
         }
+
+        {
+            var point = conditions.Points[^2];
+            var nextPoint = conditions.Points[^1];
+            var k = (nextPoint.Value - point.Value) / (nextPoint.Time - point.Time);
+            var projectedValue = k * (lastTime - point.Time) + point.Value;
+            
+            var (x, y) = GetPosition(point.Value, point.Time);
+            var (nextX, nextY) = GetPosition(projectedValue, lastTime);
+            
+            Raylib.DrawLine(x, y, nextX, nextY, Color.Black);
+        }
+        
         
         Raylib.EndTextureMode();
 
@@ -60,8 +73,8 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
         const int borderOffset = 20;
         
         var state = GetState(history, time);
-        var furthestWave = state.Waves[0];
-        var furthest = furthestWave.GetPosition(time);
+        var furthestWave = history[^1].Waves[0];
+        var furthest = furthestWave.GetPosition(history[^1].Time);
 
         // var minE = Enumerable.Range(0, width).Min(x =>
         // {
@@ -79,8 +92,11 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
         //     return CalculateE(segment.Coefficients, time, x);
         // });
 
-        var minE = Math.Abs(Math.Min(state.Segments.Min(x => x.Coefficients.C), 0));
-        var maxE = Math.Abs(Math.Max(state.Segments.Max(x => x.Coefficients.C), 0));
+        // var minE = Math.Abs(Math.Min(state.Segments.Min(x => x.Coefficients.C), 0));
+        // var maxE = Math.Abs(Math.Max(state.Segments.Max(x => x.Coefficients.C), 0));
+
+        var minE = Math.Abs(history.Min(x => x.Segments.Min(x => x.Coefficients.C)));
+        var maxE = Math.Abs(history.Max(x => x.Segments.Max(x => x.Coefficients.C)));
 
         (minE, maxE) = (-Math.Max(minE, maxE), Math.Max(minE, maxE));
         

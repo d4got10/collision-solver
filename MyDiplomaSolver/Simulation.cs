@@ -128,7 +128,7 @@ public class Simulation
         // Решение системы методом Ньютона
         try
         {
-            solution = Broyden.FindRoot(equations, initialGuess);
+            solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-6);
         }
         catch
         {
@@ -229,7 +229,7 @@ public class Simulation
             var waves = State.Waves.Append(rightWave).Append(leftWave).ToArray();
             var segments = State.Segments.Append(rightSegment).Append(leftSegment).ToArray();
 
-            segments[^2] = segments[^2] with
+            segments[^3] = segments[^3] with
             {
                 Left = rightWave
             };
@@ -263,6 +263,68 @@ public class Simulation
         }
         var left = BorderConditions.Points.Last(x => x.Time <= time);
         return (left, right);
+    }
+
+    private SimulationState ApplyBorderWaveCollisionWithRigidZone(Collision collision)
+    {
+        var time = collision.EncounterTime;
+        var (leftPoint, rightPoint) = GetBorderConditionPoints(time);
+        Console.WriteLine($"Applying border condition with rigid zone between {leftPoint.Time} and {rightPoint.Time}");
+        
+        var right = State.Segments[^1];
+
+        var phi = leftPoint.Value;
+        var k = (rightPoint.Value - leftPoint.Value) / (rightPoint.Time - leftPoint.Time);
+
+        var aj = phi + k * (time - leftPoint.Time);
+        var bj = k;
+        var ai = aj;
+        var bi = right.Coefficients.B + right.Coefficients.C * SpeedA;
+        var cj = (bi - k) / SpeedB;
+        
+        var leftWave = new Wave
+        {
+            Id = NextId(),
+            IndexInArray = State.Waves.Length,
+            SourceId = NextSourceId(),
+            StartPosition = 0,
+            StartTime = time,
+            Velocity = SpeedB
+        };
+            
+        var rightWave = new Wave
+        {
+            Id = NextId(),
+            IndexInArray = State.Waves.Length - 1,
+            SourceId = NextSourceId(),
+            StartPosition = 0,
+            StartTime = time,
+            Velocity = SpeedA
+        };
+
+        var leftSegment = new Segment
+        {
+            Left = default,
+            Right = leftWave,
+            Coefficients = new Coefficients(aj, bj, cj)
+        };
+            
+        var rightSegment = new Segment
+        {
+            Left = leftWave,
+            Right = rightWave,
+            Coefficients = new Coefficients(ai, bi, 0)
+        };
+
+        var waves = State.Waves.SkipLast(1).Append(rightWave).Append(leftWave).ToArray();
+        var segments = State.Segments.SkipLast(1).Append(rightSegment).Append(leftSegment).ToArray();
+
+        segments[^3] = segments[^3] with
+        {
+            Left = rightWave
+        };
+
+        return new SimulationState(waves, segments, time);
     }
     
     private SimulationState ApplyBorderWaveCollision(Collision collision)
@@ -311,36 +373,45 @@ public class Simulation
             -k/SpeedA,
             SpeedA,
         };
-    
+
+        double[] solution = [];
         // Решение системы методом Ньютона
         try
         {
-            var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-06D);
-
-            var waves = State.Waves.ToArray();
-            var segments = State.Segments.ToArray();
-        
-            waves[wave.IndexInArray] = wave with
-            {
-                Id = NextId(),
-                SourceId = NextSourceId(),
-                StartPosition = 0,
-                StartTime = t,
-                Velocity = solution[3]
-            };
-
-            segments[^1] = segments[^1] with
-            {
-                Coefficients = new Coefficients(solution[0], solution[1], solution[2])
-            };
-
-            return new SimulationState(Waves: waves, Segments: segments, Time: t);
+            solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-06D);
         }
         catch
         {
-            Console.WriteLine($"Broke on border collision between {wave.Id} and border");
-            throw;
+            if (right.Coefficients.C >= 0)
+            {
+                Console.WriteLine($"Broke on border collision between {wave.Id} and border");
+                throw;
+            }
         }
+
+        if (solution.Length == 0 || right.Coefficients.C < 0 && solution[2] > 0)
+        {
+            return ApplyBorderWaveCollisionWithRigidZone(collision);
+        }
+
+        var waves = State.Waves.ToArray();
+        var segments = State.Segments.ToArray();
+        
+        waves[wave.IndexInArray] = wave with
+        {
+            Id = NextId(),
+            SourceId = NextSourceId(),
+            StartPosition = 0,
+            StartTime = t,
+            Velocity = solution[3]
+        };
+
+        segments[^1] = segments[^1] with
+        {
+            Coefficients = new Coefficients(solution[0], solution[1], solution[2])
+        };
+
+        return new SimulationState(Waves: waves, Segments: segments, Time: t);
     }
     
     private SimulationState ApplyDoubleWaveCollision(Collision collision)
@@ -464,6 +535,17 @@ public class Simulation
             segments = segmentsFromRight
                 .Concat([rightSegment, leftSegment])
                 .Concat(segmentsFromLeft)
+                .Select((s, i) => s with
+                {
+                    Left = s.Left with
+                    {
+                        IndexInArray = i
+                    },
+                    Right = s.Right with
+                    {
+                        IndexInArray = i - 1
+                    }
+                })
                 .ToArray();
             
             return new SimulationState(
@@ -553,7 +635,7 @@ public class Simulation
         {
             (left.Coefficients.A + right.Coefficients.A) / 2,
             (left.Coefficients.B + right.Coefficients.B) / 2,
-            (left.Coefficients.C + right.Coefficients.C) / 2,
+            -(left.Coefficients.C + right.Coefficients.C) / 2,
             -(SpeedA + SpeedB) / 2,
             (SpeedA + SpeedB) / 2,
         };
@@ -646,7 +728,7 @@ public class Simulation
             {
                 initialGuess[4] = -speedA;
 
-                var solution = Broyden.FindRoot(equations, initialGuess);
+                var solution = Broyden.FindRoot(equations, initialGuess, accuracy: 1E-6);
 
                 return solution.Append(bi).ToArray();
             }
