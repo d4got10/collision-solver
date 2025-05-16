@@ -20,8 +20,11 @@ public class App
             new BorderConditionPoint(1.000 * 0.001,  0.0 * 0.001),
         ]);
         
-        bool hadErrors = false;
-        var history = RunSimulation(borderConditions, out hadErrors);
+        var simulationRunner = new SimulationRunner();
+        var result = simulationRunner.Run(borderConditions);
+        var history = result.History;
+        var hadErrors = !result.Successful;
+        var errorTime = result.ErrorTime ?? 0;
         
         var width = 1280;
         var height = 920;
@@ -151,7 +154,11 @@ public class App
 
             if (hadErrors)
             {
+                var lastTime = history[^1].Time * timeExtensionCoefficient;
+                var x = (int)(planeWidget.BoundingBox.Width * (errorTime / lastTime));
+                
                 Raylib.DrawText("ERROR", planeWidget.X, planeWidget.Y + 24, 24, Color.Red);
+                Raylib.DrawLine(x, planeWidget.Y, x, (int)(planeWidget.Y + planeWidget.BoundingBox.Height), Color.Red);
             }
             
             if (Raylib.IsMouseButtonReleased(MouseButton.Left))
@@ -162,7 +169,11 @@ public class App
                     Raylib.DrawText("Simulating...", planeWidget.X, planeWidget.Y, 24, Color.Black);
                     Raylib.EndDrawing();
                     
-                    history = RunSimulation(borderConditions, out hadErrors);
+                    result = simulationRunner.Run(borderConditions);
+                    history = result.History;
+                    hadErrors = !result.Successful;
+                    errorTime = result.ErrorTime ?? 0;
+                    
                     planeRenderer.RenderPlane(history, timeExtensionCoefficient);
 
                     var time = 0.0;
@@ -191,50 +202,6 @@ public class App
         Raylib.UnloadRenderTexture(graphTexture);
         Raylib.UnloadRenderTexture(borderConditionsTexture);
         Raylib.CloseWindow();
-    }
-
-    private SimulationState[] RunSimulation(BorderConditions borderConditions, out bool hadErrors)
-    {
-        double a = 3702.77;
-        double b = 2378.63;
-
-        var initialState = new SimulationState([], [ default ], -double.Epsilon);
-
-        var simulation = new Simulation(initialState, borderConditions, a, b);
-
-        List<SimulationState> history = new();
-
-        var iterationNumber = 0;
-        bool iterationSuccessful;
-        Console.WriteLine($"Iteration [{iterationNumber}]:");
-        LogState(simulation.State);
-        do
-        {
-            iterationNumber++;
-            Console.WriteLine($"Iteration [{iterationNumber}]:");
-            iterationSuccessful = simulation.Iterate();
-            if(iterationSuccessful)
-                history.Add(simulation.State);
-            LogState(simulation.State);
-        } while (iterationSuccessful && iterationNumber < 10000);
-
-        hadErrors = simulation.HadErrors;
-        return history.ToArray();
-    }
-    
-    private void LogState(SimulationState state)
-    {
-        foreach (var wave in state.Waves)
-        {
-            Console.WriteLine($"Wave[{wave.Id}] at {wave.GetPosition(state.Time) * 1000:0.00} with velocity {wave.Velocity:0.0000000}");
-        }
-
-        for (var i = 0; i < state.Segments.Length; i++)
-        {
-            var segment = state.Segments[i];
-            Console.WriteLine($"Segment [{i}]: A={segment.Coefficients.A} B={segment.Coefficients.B} C={segment.Coefficients.C}");
-        }
-        Console.WriteLine();
     }
 }
 

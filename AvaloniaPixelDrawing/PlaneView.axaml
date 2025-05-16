@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaPixelDrawing="clr-namespace:AvaloniaPixelDrawing"
+             x:Class="AvaloniaPixelDrawing.PlaneView">
+    <Canvas x:Name="PlaneParentCanvas">
+        <avaloniaPixelDrawing:PlaneCanvas Name="PlaneCanvas"
+                                          Width="{Binding #PlaneParentCanvas.Bounds.Width}"
+                                          Height="{Binding #PlaneParentCanvas.Bounds.Height}"/>
+        <Line x:Name="VerticalLine" 
+              Stroke="Red" 
+              StrokeThickness="1" 
+              StartPoint="0,0" 
+              EndPoint="0,0"
+              IsVisible="False"/>
+    </Canvas>
+</UserControl>

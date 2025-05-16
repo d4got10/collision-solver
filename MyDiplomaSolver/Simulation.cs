@@ -20,6 +20,7 @@ public class Simulation
     public double SpeedA { get; private set; }
     public double SpeedB { get; private set; }
     public bool HadErrors { get; private set; }
+    public double ErrorTime { get; private set; }
 
     private static Wave _borderWave = default;
 
@@ -28,43 +29,54 @@ public class Simulation
 
     public bool Iterate()
     {
-        HadErrors = false;
-        var nextConditionPointTime = GetNextBorderConditionPointTime();
-        var collisions = CalculateCollision().ToArray();
-        if (collisions.Length == 0)
+        try
         {
-            if (!double.IsPositiveInfinity(nextConditionPointTime))
+            HadErrors = false;
+            var nextConditionPointTime = GetNextBorderConditionPointTime();
+            var collisions = CalculateCollision().ToArray();
+            if (collisions.Length == 0)
             {
-                State = ApplyNextBorderConditionPoint(nextConditionPointTime);
-                return true;
-            }
-            
-            Console.WriteLine("No collisions. Terminating...");
-            return false;
-        }
-        
-        Console.WriteLine($"Collision count: {collisions.Length}");
-        var collision = collisions.MinBy(c => c.EncounterTime);
+                if (!double.IsPositiveInfinity(nextConditionPointTime))
+                {
+                    State = ApplyNextBorderConditionPoint(nextConditionPointTime);
+                    return true;
+                }
 
-        if (nextConditionPointTime < collision.EncounterTime)
-        {
-            State = ApplyNextBorderConditionPoint(nextConditionPointTime);
-        }
-        else
-        {
-            try
-            {
-                State = ApplyCollision(collision);
-            }
-            catch(Exception exception)
-            {
-                Console.WriteLine($"Получена ошибка при расчёте столкновения волн: {exception.Message}");
-                HadErrors = true;
+                Console.WriteLine("No collisions. Terminating...");
                 return false;
             }
+
+            Console.WriteLine($"Collision count: {collisions.Length}");
+            var collision = collisions.MinBy(c => c.EncounterTime);
+
+            if (nextConditionPointTime < collision.EncounterTime)
+            {
+                State = ApplyNextBorderConditionPoint(nextConditionPointTime);
+            }
+            else
+            {
+                try
+                {
+                    State = ApplyCollision(collision);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine($"Получена ошибка при расчёте столкновения волн: {exception.Message}");
+                    ErrorTime = collision.EncounterTime;
+                    HadErrors = true;
+                    return false;
+                }
+            }
+
+            return true;
         }
-        
-        return true;
+        catch (Exception exception)
+        {
+            Console.WriteLine($"Получена ошибка при итерации: {exception.Message}");
+            ErrorTime = State.Time;
+            HadErrors = true;
+            return false;
+        }
     }
 
     public static int NextId() => _waveId++;

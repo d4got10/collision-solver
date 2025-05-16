@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:avaloniaPixelDrawing="clr-namespace:AvaloniaPixelDrawing"
+        Title="Avalonia Pixel Drawing" 
+        Width="1200" Height="800"
+        x:Class="AvaloniaPixelDrawing.MainWindow">
+        <Grid>
+                <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="3*" />
+                </Grid.RowDefinitions>
+                
+                <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <avaloniaPixelDrawing:ConnectedCirclesControl Grid.Row="0" Grid.Column="1" />
+                </Grid>
+                
+                <avaloniaPixelDrawing:PlaneView Grid.Row="1" />
+        </Grid>
+</Window>

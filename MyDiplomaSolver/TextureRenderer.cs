@@ -114,13 +114,13 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
             
             for (int y = 0; y < height; y++)
             {
-                Raylib.DrawPixel(x, y, GetColor(x, y));
+                Raylib.DrawPixel(x, y, GetColor(x, height - y));
             }
 
             var cnt = 3;
             for (int y = height - 1; y >= 0; y--)
             {
-                var color = GetColor(x, y);
+                var color = GetColor(x, height - y);
                 if (color.R == Color.DarkGray.R)
                 {
                     Raylib.DrawPixel(x, y, Color.Black);
@@ -144,7 +144,7 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
         Raylib.DrawText($"{maxE:0.0000}", 3, bottomY, 24, Color.White);
         Raylib.DrawText($"{minE:0.0000}", 3, topY, 24, Color.White);
         Raylib.DrawText($"0", 3, (topY + bottomY) / 2, 24, Color.White);
-        Raylib.DrawText($"C(x, t)", width - 120, bottomY, 36, Color.White);
+        Raylib.DrawText($"e(x, t)", width - 120, bottomY, 36, Color.White);
         
         Raylib.EndTextureMode();
                 
@@ -162,10 +162,10 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
             
             if (e <= graphE)
             {
-                return Color.DarkGray;
+                return Color.LightGray;
             }
             
-            return Color.LightGray;
+            return Color.DarkGray;
         }
 
         double CalculateE(Coefficients coefficients, double t, double x)
@@ -225,8 +225,8 @@ public class TextureRenderer(int width, int height, RenderTexture2D target)
 
             return segment.Coefficients.C switch
             {
-                > 0 => new Color((int)(255 - 127 * segment.Coefficients.C / 0.03), 0, 0),
-                < 0 => new Color(0, (int)(255 + 127 * segment.Coefficients.C / 0.03), 0),
+                > 0 => new Color(0, (int)(255 - 127 * segment.Coefficients.C / 0.04), 0),
+                < 0 => new Color((int)(255 + 127 * segment.Coefficients.C / 0.04), 0, 0),
                 _ => Color.Yellow
             };
         }
