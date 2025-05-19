@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -43,11 +44,43 @@ public partial class MainWindow : Window
         var history = result.History;
         var lastTime = history[^1].Time * 1.05;
         var maxPosition = history[^1].Waves[0].GetPosition(lastTime);
-
         var maxValue = history.Max(x => x.Segments.Max(s => Math.Abs(s.Coefficients.C)));
+
+        ViewModel.History = history;
+        ViewModel.LastTime = lastTime;
+        ViewModel.MaxValue = maxValue;
+        ViewModel.MaxPosition = maxPosition;
+        ViewModel.SelectedGraphTime = lastTime / 2;
         
-        GraphView.Update(history[^1], maxPosition, maxValue, lastTime);
+        ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
+
+        UpdateGraph();
+        
         PlaneView.Update(history, lastTime, maxPosition);
         BorderConditionsView.BorderConditions = borderConditions;
     }
+
+    private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ViewModel.SelectedGraphTime))
+        {
+            UpdateGraph();
+        }
+    }
+    private void UpdateGraph()
+    {
+        var state = GetState(ViewModel.SelectedGraphTime);
+
+        GraphView.Update(state, ViewModel.MaxPosition, ViewModel.MaxValue, ViewModel.SelectedGraphTime);
+    }
+
+    private SimulationState GetState(double time)
+    {
+        var state = ViewModel.History.FirstOrDefault(x => x.Time >= time);
+        if (state == default)
+        {
+            return ViewModel.History[^1];
+        }
+        return state;
+    } 
 }

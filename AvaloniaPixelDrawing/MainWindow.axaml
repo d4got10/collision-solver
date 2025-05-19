@@ -22,7 +22,7 @@
                 </Grid>
                 
                 <Canvas Grid.Row="1" Name="PlaneCanvas">
-                        <avaloniaPixelDrawing:PlaneView Name="PlaneView" 
+                        <avaloniaPixelDrawing:PlaneView Name="PlaneView"
                                                         Width="{Binding #PlaneCanvas.Bounds.Width}" 
                                                         Height="{Binding #PlaneCanvas.Bounds.Height}" />
                         <TextBlock IsVisible="{Binding HadError}" Foreground="Red">ERROR</TextBlock>
