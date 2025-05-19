@@ -16,32 +16,21 @@ public partial class PlaneCanvas : UserControl
     {
         InitializeComponent();
         
-        var borderConditions = new BorderConditions(
-        [
-            new BorderConditionPoint(0.000 * 0.001,  0.0 * 0.001),
-            new BorderConditionPoint(0.125 * 0.001, -5.0 * 0.001),
-            new BorderConditionPoint(0.250 * 0.001, +5.0 * 0.001),
-            new BorderConditionPoint(0.375 * 0.001, -5.0 * 0.001),
-            new BorderConditionPoint(0.500 * 0.001, +5.0 * 0.001),
-            new BorderConditionPoint(0.625 * 0.001, -5.0 * 0.001),
-            new BorderConditionPoint(0.750 * 0.001, +5.0 * 0.001),
-            new BorderConditionPoint(0.875 * 0.001, -5.0 * 0.001),
-            new BorderConditionPoint(1.000 * 0.001,  0.0 * 0.001),
-        ]);
-        
-        var simulationRunner = new SimulationRunner();
-        var result = simulationRunner.Run(borderConditions);
-        _history = result.History;
-        _lastTime = _history[^1].Time * 1.05;
-        _furthest = _history[^1].Waves[0].GetPosition(_lastTime);
-        
         this.GetObservable(BoundsProperty)
             .Subscribe(new Observer<Rect>(DrawPixels));
     }
 
     private SimulationState[] _history = [];
     private double _lastTime = 0;
-    private double _furthest = 0;
+    private double _maxPosition = 0;
+
+    public void Update(SimulationState[] history, double lastTime, double maxPosition)
+    {
+        _history = history;
+        _lastTime = lastTime;
+        _maxPosition = maxPosition;
+        DrawPixels(new Rect(0, 0, 1920, 1080));
+    }
     
     private void DrawPixels(Rect bounds)
     {
@@ -95,11 +84,11 @@ public partial class PlaneCanvas : UserControl
     private Color GetColor(int x, int y, int width, int height)
     {
         var time = x / (double)width * _lastTime;
-        var position = y / (double)height * _furthest;
+        var position = y / (double)height * _maxPosition;
         var state = GetState(_history, time);
 
         var cnt = state.Waves.Count(x => x.GetPosition(time) >= position);
-        var nextCnt = state.Waves.Count(x => x.GetPosition(time) >= position + _furthest / height);
+        var nextCnt = state.Waves.Count(x => x.GetPosition(time) >= position + _maxPosition / height);
         if (cnt != nextCnt)
         {
             return Colors.Black;

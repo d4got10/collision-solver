@@ -29,6 +29,10 @@
       <DependentUpon>PlaneView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="GraphView.axaml.cs">
+      <DependentUpon>ControlView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

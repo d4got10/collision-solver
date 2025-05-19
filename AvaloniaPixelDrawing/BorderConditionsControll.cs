@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -11,6 +12,8 @@ namespace AvaloniaPixelDrawing;
 
 public class ConnectedCirclesControl : Control
 {
+    public event Action Updated = delegate { };
+    
     private const int CircleCount = 10;
     private const double CircleRadius = 10;
     private Point[] _circleCenters = new Point[CircleCount];
@@ -19,18 +22,18 @@ public class ConnectedCirclesControl : Control
     public double LastTime { get; private set; } = 1;
     public double MaxValue { get; private set; } = 1;
     
+    private IEnumerable<Point> ScreenPoints => _circleCenters.Select(MapToScreen);
+    
     public BorderConditions BorderConditions
     {
         get
         {
-            var baseY = Bounds.Height / 2;
-            var width = Bounds.Width - 2 * CircleRadius;
-            var height = Bounds.Height / 2  - CircleRadius;
+            var baseY = 0.5;
             var points = _circleCenters
                 .Select(center =>
                 {
-                    var time = LastTime * (center.X / width);
-                    var value = MaxValue * ((baseY - center.Y) / height);
+                    var time = LastTime * center.X;
+                    var value = MaxValue * (baseY - center.Y);
                     return new BorderConditionPoint(time, value);
                 })
                 .ToArray();
@@ -47,40 +50,15 @@ public class ConnectedCirclesControl : Control
             {
                 throw new ArgumentOutOfRangeException(nameof(value), "Граничное условие должно содержать минимум 2 точки");
             }
-            
-            var width = Bounds.Width - 2 * CircleRadius;
-            var height = Bounds.Height / 2 - CircleRadius;
-            var baseY = Bounds.Height / 2;
 
             LastTime = value.Points.Max(x => x.Time);
             MaxValue = value.Points.Max(x => Math.Abs(x.Value));
             
             _circleCenters = value.Points
-                .Select(p => new Point(width * (p.Time / LastTime), baseY - height * (p.Value / MaxValue)))
+                .Select(p => new Point(p.Time / LastTime, 0.5 - 0.5 * (p.Value / MaxValue)))
                 .ToArray();
-        }
-    }
-    
-    public ConnectedCirclesControl()
-    {
-        // Инициализируем позиции кругов
-        this.GetObservable(BoundsProperty)
-            .Subscribe(new Observer<Rect>(_ => InitializeCirclePositions()));
-    }
-
-    private void InitializeCirclePositions()
-    {
-        if (Bounds.Width == 0)
-        {
-            return;
-        }
-
-        _circleCenters[0] = new Point(CircleRadius, Bounds.Height / 2);
-        _circleCenters[^1] = new Point(Bounds.Width - CircleRadius, Bounds.Height / 2);
-        
-        for (int i = 1; i < CircleCount - 1; i++)
-        {
-            _circleCenters[i] = new Point((i + 1) * Bounds.Width / (CircleCount + 1), Bounds.Height / 2);
+            
+            InvalidateVisual();
         }
     }
 
@@ -90,13 +68,14 @@ public class ConnectedCirclesControl : Control
         var position = e.GetPosition(this);
         var pointerPoint = e.GetCurrentPoint(this);
 
+        var points = ScreenPoints.ToArray();
         if (pointerPoint.Properties.IsRightButtonPressed)
         {
             int? clickedCircleIndex = null;
             // Проверяем, был ли клик на каком-либо круге
-            for (int i = 0; i < _circleCenters.Length; i++)
+            for (int i = 0; i < points.Length; i++)
             {
-                if (IsPointInCircle(position, _circleCenters[i]))
+                if (IsPointInCircle(position, points[i]))
                 {
                     clickedCircleIndex = i;
                     break;
@@ -105,7 +84,7 @@ public class ConnectedCirclesControl : Control
 
             if (clickedCircleIndex.HasValue)
             {
-                if (clickedCircleIndex > 0 && clickedCircleIndex < _circleCenters.Length - 1)
+                if (clickedCircleIndex > 0 && clickedCircleIndex < points.Length - 1)
                 {
                     var circleCenters = _circleCenters.Take(clickedCircleIndex.Value)
                         .Concat(_circleCenters.Skip(clickedCircleIndex.Value + 1))
@@ -118,10 +97,11 @@ public class ConnectedCirclesControl : Control
                 var newPointPosition = new Point(
                     Math.Clamp(position.X, CircleRadius, Bounds.Width - CircleRadius),
                     Math.Clamp(position.Y, CircleRadius, Bounds.Height - CircleRadius));
+                var newMappedPoint = MapToRelative(newPointPosition);
                 // Добавляем новый круг по правому клику
-                var circleCenters = _circleCenters.Where(p => p.X < position.X)
-                    .Append(newPointPosition)
-                    .Concat(_circleCenters.Where(p => p.X > position.X))
+                var circleCenters = _circleCenters.Where(p => p.X < newMappedPoint.X)
+                    .Append(newMappedPoint)
+                    .Concat(_circleCenters.Where(p => p.X > newMappedPoint.X))
                     .ToArray();
                 _circleCenters = circleCenters;
             }
@@ -129,9 +109,9 @@ public class ConnectedCirclesControl : Control
         else
         {
             // Проверяем, был ли клик на каком-либо круге
-            for (int i = 1; i < _circleCenters.Length; i++)
+            for (int i = 1; i < points.Length; i++)
             {
-                if (IsPointInCircle(position, _circleCenters[i]))
+                if (IsPointInCircle(position, points[i]))
                 {
                     _draggedCircleIndex = i;
                     break;
@@ -159,10 +139,10 @@ public class ConnectedCirclesControl : Control
             // Нижняя граница (с учетом радиуса)
             boundedY = Math.Min(Bounds.Height - CircleRadius, boundedY);
             
+            var p = MapToRelative(new Point(0, boundedY));
+            
             // Обновляем только Y-координату выбранного круга
-            _circleCenters[_draggedCircleIndex.Value] = new Point(
-                _circleCenters[_draggedCircleIndex.Value].X,
-                boundedY);
+            _circleCenters[_draggedCircleIndex.Value] = new Point(_circleCenters[_draggedCircleIndex.Value].X, p.Y);
             
             InvalidateVisual();
         }
@@ -172,27 +152,13 @@ public class ConnectedCirclesControl : Control
     {
         base.OnPointerReleased(e);
         _draggedCircleIndex = null;
+        Updated();
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        UpdateCirclePositions();
         InvalidateVisual();
-    }
-
-    private void UpdateCirclePositions()
-    {
-        if (Bounds.Width <= 0 || Bounds.Height <= 0)
-            return;
-
-        for (int i = 0; i < _circleCenters.Length; i++)
-        {
-            double x = _circleCenters[i].X;
-            double y = _circleCenters[i].Y;
-            
-            _circleCenters[i] = new Point(x, y);
-        }
     }
 
     private bool IsPointInCircle(Point point, Point circleCenter)
@@ -207,23 +173,39 @@ public class ConnectedCirclesControl : Control
         
         if (Bounds.Width <= 0 || Bounds.Height <= 0)
             return;
-
-        UpdateCirclePositions();
         
         context.FillRectangle(Brushes.GhostWhite, new Rect(0, 0, Bounds.Width, Bounds.Height));
 
+        var mappedCircleCenters = ScreenPoints.ToArray();
+        
         // Рисуем соединительную линию
         var linePen = new ImmutablePen(Brushes.Black, 1);
-        for (int i = 0; i < _circleCenters.Length - 1; i++)
+        for (int i = 0; i < mappedCircleCenters.Length - 1; i++)
         {
-            context.DrawLine(linePen, _circleCenters[i], _circleCenters[i + 1]);
+            context.DrawLine(linePen, mappedCircleCenters[i], mappedCircleCenters[i + 1]);
         }
 
         // Рисуем круги
         var circleBrush = Brushes.Black;
-        for (int i = 0; i < _circleCenters.Length; i++)
+        for (int i = 0; i < mappedCircleCenters.Length; i++)
         {
-            context.DrawEllipse(circleBrush, linePen, _circleCenters[i], CircleRadius, CircleRadius);
+            context.DrawEllipse(circleBrush, linePen, mappedCircleCenters[i], CircleRadius, CircleRadius);
         }
+    }
+
+    private Point MapToScreen(Point relativePoint)
+    {
+        var width = Bounds.Width - 2 * CircleRadius;
+        var height = Bounds.Height - 2 * CircleRadius;
+
+        return new Point(relativePoint.X * width + CircleRadius, relativePoint.Y * height + CircleRadius);
+    }
+
+    private Point MapToRelative(Point screenPoint)
+    {
+        var width = Bounds.Width - 2 * CircleRadius;
+        var height = Bounds.Height - 2 * CircleRadius;
+
+        return new Point((screenPoint.X - CircleRadius) / width, (screenPoint.Y - CircleRadius) / height);
     }
 }

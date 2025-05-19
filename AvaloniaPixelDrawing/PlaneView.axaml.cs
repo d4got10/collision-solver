@@ -1,11 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using MyDiplomaSolver;
 
 namespace AvaloniaPixelDrawing;
@@ -28,5 +22,10 @@ public partial class PlaneView : UserControl
         PlaneCanvas.PointerExited += (sender, e) => {
             VerticalLine.IsVisible = false;
         };
+    }
+
+    public void Update(SimulationState[] history, double lastTime, double maxPosition)
+    {
+        PlaneCanvas.Update(history, lastTime, maxPosition);
     }
 }

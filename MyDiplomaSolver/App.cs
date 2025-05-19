@@ -26,8 +26,8 @@ public class App
         var hadErrors = !result.Successful;
         var errorTime = result.ErrorTime ?? 0;
         
-        var width = 1280;
-        var height = 920;
+        var width = 1280 * 2;
+        var height = 920 * 2;
         
         Raylib.InitWindow(width, height, "Raylib Pixel Drawing");
         List<IWidget> widgets = [];
