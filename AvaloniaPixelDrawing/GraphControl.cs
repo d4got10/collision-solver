@@ -36,7 +36,11 @@ public class GraphControl : Control
         
         var linePen = new ImmutablePen(Brushes.Black, 2);
 
-        var prevY = GetY(0);
+        var prevY = GetY(State.Segments[^1].Coefficients.C);
+        var leftX = GetX(0);
+        var rightX = GetX(State.Waves[^1].GetPosition(Time));
+        
+        context.DrawLine(linePen, new Point(leftX, prevY), new Point(rightX, prevY));
 
         for (var i = State.Waves.Length - 1; i > 0; i--)
         {
@@ -44,8 +48,8 @@ public class GraphControl : Control
             var left = State.Waves[i];
             var segment = State.Segments[i];
 
-            var leftX = GetX(left.GetPosition(Time));
-            var rightX = GetX(right.GetPosition(Time));
+            leftX = GetX(left.GetPosition(Time));
+            rightX = GetX(right.GetPosition(Time));
             var y = GetY(segment.Coefficients.C);
             
             context.DrawLine(linePen, new Point(leftX, prevY), new Point(leftX, y));
@@ -53,6 +57,12 @@ public class GraphControl : Control
 
             prevY = y;
         }
+        
+        var furthest = State.Waves[0].GetPosition(Time);
+        var furthestX = GetX(furthest);
+        
+        context.DrawLine(linePen, new Point(furthestX, 0), new Point(furthestX, Bounds.Height));
+        context.FillRectangle(Brushes.LightGray, new Rect(furthestX, 0, Bounds.Width, Bounds.Height));
     }
     
     private double GetX(double position)

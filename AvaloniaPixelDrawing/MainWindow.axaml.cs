@@ -76,7 +76,7 @@ public partial class MainWindow : Window
 
     private SimulationState GetState(double time)
     {
-        var state = ViewModel.History.FirstOrDefault(x => x.Time >= time);
+        var state = ViewModel.History.LastOrDefault(x => x.Time < time);
         if (state == default)
         {
             return ViewModel.History[^1];

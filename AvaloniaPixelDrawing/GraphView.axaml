@@ -9,7 +9,7 @@
         <Line x:Name="VerticalLine" 
               Stroke="Gray" 
               StrokeThickness="1" 
-              StartPoint="0,200" 
+              StartPoint="0,200"
               EndPoint="200,200"/>
     </Canvas>
 </UserControl>

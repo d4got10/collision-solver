@@ -12,12 +12,12 @@ namespace AvaloniaPixelDrawing;
 
 public partial class PlaneCanvas : UserControl
 {
+    public const int ResolutionWidth = 1920;
+    public const int ResolutionHeight = 1080;
+    
     public PlaneCanvas()
     {
         InitializeComponent();
-        
-        this.GetObservable(BoundsProperty)
-            .Subscribe(new Observer<Rect>(DrawPixels));
     }
 
     private SimulationState[] _history = [];
@@ -29,7 +29,7 @@ public partial class PlaneCanvas : UserControl
         _history = history;
         _lastTime = lastTime;
         _maxPosition = maxPosition;
-        DrawPixels(new Rect(0, 0, 1920, 1080));
+        DrawPixels(new Rect(0, 0, ResolutionWidth, ResolutionHeight));
     }
     
     private void DrawPixels(Rect bounds)

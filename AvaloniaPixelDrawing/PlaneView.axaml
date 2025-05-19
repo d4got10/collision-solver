@@ -17,5 +17,13 @@
         <Line x:Name="SelectedVerticalLine" 
               Stroke="Black" 
               StrokeThickness="1"/>
+        
+        <TextBlock x:Name="SelectedTime"
+                 Foreground="Black"
+                 Text="0.0"/>
+        <TextBlock x:Name="WaveCount"
+                   Foreground="Black"
+                   Canvas.Top="20"
+                   Text="0"/>
     </Canvas>
 </UserControl>

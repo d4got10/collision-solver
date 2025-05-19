@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -31,11 +32,7 @@ public partial class PlaneView : UserControl
             if (e.GetCurrentPoint(PlaneCanvas).Properties.IsLeftButtonPressed)
             {
                 var position = e.GetPosition(PlaneCanvas);
-                var x = Math.Clamp(position.X, 0, Bounds.Width);
-                
-                SelectedVerticalLine.StartPoint = new Point(x, 0);
-                SelectedVerticalLine.EndPoint = new Point(x, PlaneCanvas.Bounds.Height);
-                ViewModel.SelectedGraphTime = GetTimeFromX(x);
+                UpdateOnPress(position);
             }
         };
         PlaneCanvas.PointerMoved += (sender, e) =>
@@ -43,16 +40,24 @@ public partial class PlaneView : UserControl
             if (e.GetCurrentPoint(PlaneCanvas).Properties.IsLeftButtonPressed)
             {
                 var position = e.GetPosition(PlaneCanvas);
-                var x = Math.Clamp(position.X, 0, Bounds.Width);
-                
-                SelectedVerticalLine.StartPoint = new Point(x, 0);
-                SelectedVerticalLine.EndPoint = new Point(x, PlaneCanvas.Bounds.Height);
-                ViewModel.SelectedGraphTime = GetTimeFromX(x);
+                UpdateOnPress(position);
             }
         };
         PlaneCanvas.PointerReleased += (sender, e) =>
         {
         };
+    }
+
+    private void UpdateOnPress(Point position)
+    {
+        var x = Math.Clamp(position.X, 0, Bounds.Width);
+                
+        SelectedVerticalLine.StartPoint = new Point(x, 0);
+        SelectedVerticalLine.EndPoint = new Point(x, PlaneCanvas.Bounds.Height);
+        ViewModel.SelectedGraphTime = GetTimeFromX(x);
+        SelectedTime.Text = ViewModel.SelectedGraphTime.ToString("F6");
+        var state = ViewModel.History.LastOrDefault(x => x.Time < ViewModel.SelectedGraphTime);
+        WaveCount.Text = state != default ? state.Waves.Length.ToString() : "None";
     }
 
     public void Update(SimulationState[] history, double lastTime, double maxPosition)

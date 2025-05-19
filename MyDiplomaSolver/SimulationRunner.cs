@@ -22,12 +22,35 @@ public class SimulationRunner
             iterationNumber++;
             Console.WriteLine($"Iteration [{iterationNumber}]:");
             iterationSuccessful = simulation.Iterate();
-            if(iterationSuccessful)
+            if (iterationSuccessful)
+            {
+                if (history.Count > 0)
+                {
+                    CheckWavesOrdering(history[^1].Waves, (history[^1].Time + simulation.State.Time) * 0.5);
+                }
+
                 history.Add(simulation.State);
+            }
+
             LogState(simulation.State);
         } while (iterationSuccessful && iterationNumber < 10000);
 
+        Console.WriteLine($"Last Time: {history[^1].Time}");
         return new SimulationResult(history.ToArray(), !simulation.HadErrors, simulation.HadErrors ? simulation.ErrorTime : null);
+    }
+
+    private void CheckWavesOrdering(Wave[] waves, double time)
+    {
+        var x = 0.0;
+        foreach (var wave in waves.Reverse())
+        {
+            var newX = wave.GetPosition(time);
+            if (newX < x)
+            {
+                throw new Exception("Wave order incorrect");
+            }
+            x = newX;
+        }
     }
     
     private void LogState(SimulationState state)
