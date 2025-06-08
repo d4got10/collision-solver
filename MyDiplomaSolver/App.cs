@@ -20,8 +20,11 @@ public class App
             new BorderConditionPoint(1.000 * 0.001,  0.0 * 0.001),
         ]);
         
+        double a = 3702.77;
+        double b = 2378.63;
+        
         var simulationRunner = new SimulationRunner();
-        var result = simulationRunner.Run(borderConditions);
+        var result = simulationRunner.Run(borderConditions, a, b);
         var history = result.History;
         var hadErrors = !result.Successful;
         var errorTime = result.ErrorTime ?? 0;
@@ -169,7 +172,7 @@ public class App
                     Raylib.DrawText("Simulating...", planeWidget.X, planeWidget.Y, 24, Color.Black);
                     Raylib.EndDrawing();
                     
-                    result = simulationRunner.Run(borderConditions);
+                    result = simulationRunner.Run(borderConditions, a, b);
                     history = result.History;
                     hadErrors = !result.Successful;
                     errorTime = result.ErrorTime ?? 0;

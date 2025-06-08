@@ -10,7 +10,7 @@ using MyDiplomaSolver;
 
 namespace AvaloniaPixelDrawing;
 
-public class ConnectedCirclesControl : Control
+public class BorderConditionsControl : Control
 {
     public event Action Updated = delegate { };
     
@@ -33,7 +33,7 @@ public class ConnectedCirclesControl : Control
                 .Select(center =>
                 {
                     var time = LastTime * center.X;
-                    var value = MaxValue * (baseY - center.Y);
+                    var value = MaxValue * 2 * (baseY - center.Y);
                     return new BorderConditionPoint(time, value);
                 })
                 .ToArray();
@@ -180,6 +180,7 @@ public class ConnectedCirclesControl : Control
         
         // Рисуем соединительную линию
         var linePen = new ImmutablePen(Brushes.Black, 1);
+        context.DrawLine(linePen, new Point(0, Bounds.Height / 2), new Point(Bounds.Width, Bounds.Height / 2));
         for (int i = 0; i < mappedCircleCenters.Length - 1; i++)
         {
             context.DrawLine(linePen, mappedCircleCenters[i], mappedCircleCenters[i + 1]);

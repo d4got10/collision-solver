@@ -51,18 +51,26 @@ public partial class PlaneView : UserControl
     private void UpdateOnPress(Point position)
     {
         var x = Math.Clamp(position.X, 0, Bounds.Width);
-                
+        ViewModel.SelectedGraphTime = GetTimeFromX(x);
+        UpdateInfo();
+    }
+    
+    private void UpdateInfo()
+    {
+        var x = ViewModel.SelectedGraphTime / ViewModel.LastTime * PlaneCanvas.Bounds.Width;
         SelectedVerticalLine.StartPoint = new Point(x, 0);
         SelectedVerticalLine.EndPoint = new Point(x, PlaneCanvas.Bounds.Height);
-        ViewModel.SelectedGraphTime = GetTimeFromX(x);
-        SelectedTime.Text = ViewModel.SelectedGraphTime.ToString("F6");
+        SelectedTime.Text = "t=" + ViewModel.SelectedGraphTime.ToString("F6");
+        Canvas.SetLeft(SelectedTime, x + 3);
+        
         var state = ViewModel.History.LastOrDefault(x => x.Time < ViewModel.SelectedGraphTime);
         WaveCount.Text = state != default ? state.Waves.Length.ToString() : "None";
     }
 
-    public void Update(SimulationState[] history, double lastTime, double maxPosition)
+    public void Update(SimulationState[] history)
     {
-        PlaneCanvas.Update(history, lastTime, maxPosition);
+        PlaneCanvas.Update(history, ViewModel.LastTime, ViewModel.MaxPosition);
+        UpdateInfo();
     }
 
     private double GetTimeFromX(double x)

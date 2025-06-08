@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MyDiplomaSolver;
@@ -20,11 +21,21 @@ public class SimulationViewModel : INotifyPropertyChanged
         get => _selectedGraphTime;
         set => SetField(ref _selectedGraphTime, value);
     }
+
+    public string TaskName { get; set; } = "";
+    public double SpeedA => Math.Sqrt((Lambda + 2 * Mu + 2 * V) / Ro);
+    public double SpeedB => Math.Sqrt((Lambda + 2 * Mu - 2 * V) / Ro);
+    
+    public double Lambda { get; set; }
+    public double Mu { get; set; }
+    public double V { get; set; }
+    public double Ro { get; set; }
     
     public double LastTime { get; set; }
     public double MaxPosition { get; set; }
     public double MaxValue { get; set; }
     public SimulationState[] History { get; set; } = [];
+    public BorderConditions BorderConditions { get; set; }
     
     private bool _hadError = false;
     private double _selectedGraphTime = 0;

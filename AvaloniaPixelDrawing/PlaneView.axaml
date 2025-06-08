@@ -24,6 +24,7 @@
         <TextBlock x:Name="WaveCount"
                    Foreground="Black"
                    Canvas.Top="20"
-                   Text="0"/>
+                   Text="0"
+                   IsVisible="False"/>
     </Canvas>
 </UserControl>

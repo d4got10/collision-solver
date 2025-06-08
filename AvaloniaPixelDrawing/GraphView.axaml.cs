@@ -14,6 +14,8 @@ public partial class GraphView : UserControl
     public void Update(SimulationState state, double maxPosition, double maxValue, double time)
     {
         GraphControl.Update(state, maxPosition, maxValue, time);
+        MaxValueText.Text = maxValue.ToString("F6");
+        MinValueText.Text = (-maxValue).ToString("F6");
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)

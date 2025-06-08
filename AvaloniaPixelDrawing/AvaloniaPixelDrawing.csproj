@@ -33,6 +33,18 @@
       <DependentUpon>ControlView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="SimulationView.axaml.cs">
+      <DependentUpon>SimulationView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="EditableListControl.axaml.cs">
+      <DependentUpon>EditableListControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="BorderConditionsView.axaml.cs">
+      <DependentUpon>BorderConditionsView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -2,14 +2,11 @@
 
 public class SimulationRunner
 {
-    public SimulationResult Run(BorderConditions borderConditions)
+    public SimulationResult Run(BorderConditions borderConditions, double speedA, double speedB)
     {
-        double a = 3702.77;
-        double b = 2378.63;
-
         var initialState = new SimulationState([], [ default ], -double.Epsilon);
 
-        var simulation = new Simulation(initialState, borderConditions, a, b);
+        var simulation = new Simulation(initialState, borderConditions, speedA, speedB);
 
         List<SimulationState> history = new();
 
