@@ -36,8 +36,25 @@ public partial class MainWindow : Window
             new BorderConditionPoint(0.625 * 0.001, -5.0 * 0.001),
             new BorderConditionPoint(0.750 * 0.001, +5.0 * 0.001),
             new BorderConditionPoint(0.875 * 0.001, -5.0 * 0.001),
-            new BorderConditionPoint(1.000 * 0.001,  0.0 * 0.001),
         ]);
+        
+        // ViewModel.BorderConditions = new BorderConditions(
+        // [
+        //     new BorderConditionPoint(0.000 * 0.001,  0.0 * 0.001),
+        //     new BorderConditionPoint(0.200 * 0.001, -3.0 * 0.001),
+        //     new BorderConditionPoint(0.500 * 0.001,  0.0 * 0.001),
+        //     new BorderConditionPoint(0.750 * 0.001,  4.0 * 0.001),
+        //     new BorderConditionPoint(0.900 * 0.001,  0.0 * 0.001),
+        // ]);
+        
+        // ViewModel.BorderConditions = new BorderConditions(
+        // [
+        //     new BorderConditionPoint(0.000 * 0.001,  0.0 * 0.001),
+        //     new BorderConditionPoint(0.300 * 0.001, -4.5 * 0.001),
+        //     new BorderConditionPoint(0.500 * 0.001, -5.0 * 0.001),
+        //     new BorderConditionPoint(0.600 * 0.001, -4.0 * 0.001),
+        //     new BorderConditionPoint(0.800 * 0.001,  0.0 * 0.001),
+        // ]);
         
         // Обработчики кнопок
         EditButton.Click += (s, e) => 

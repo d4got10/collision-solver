@@ -36,9 +36,10 @@ public class GraphControl : Control
         
         var linePen = new ImmutablePen(Brushes.Black, 2);
 
+        var furthest = State.Waves[0].GetPosition(Time);
         var prevY = GetY(State.Segments[^1].Coefficients.C);
-        var leftX = GetX(0);
-        var rightX = GetX(State.Waves[^1].GetPosition(Time));
+        var leftX = GetX(0, furthest);
+        var rightX = GetX(State.Waves[^1].GetPosition(Time), furthest);
         
         context.DrawLine(linePen, new Point(leftX, prevY), new Point(rightX, prevY));
 
@@ -48,8 +49,8 @@ public class GraphControl : Control
             var left = State.Waves[i];
             var segment = State.Segments[i];
 
-            leftX = GetX(left.GetPosition(Time));
-            rightX = GetX(right.GetPosition(Time));
+            leftX = GetX(left.GetPosition(Time), furthest);
+            rightX = GetX(right.GetPosition(Time), furthest);
             var y = GetY(segment.Coefficients.C);
             
             context.DrawLine(linePen, new Point(leftX, prevY), new Point(leftX, y));
@@ -58,20 +59,19 @@ public class GraphControl : Control
             prevY = y;
         }
         
-        var furthest = State.Waves[0].GetPosition(Time);
-        var furthestX = GetX(furthest);
+        var furthestX = GetX(furthest, furthest);
         
-        context.DrawLine(linePen, new Point(furthestX, 0), new Point(furthestX, Bounds.Height));
-        context.FillRectangle(Brushes.LightGray, new Rect(furthestX, 0, Bounds.Width, Bounds.Height));
+        // context.DrawLine(linePen, new Point(furthestX, 0), new Point(furthestX, Bounds.Height));
+        // context.FillRectangle(Brushes.LightGray, new Rect(furthestX, 0, Bounds.Width, Bounds.Height));
     }
     
-    private double GetX(double position)
+    private double GetX(double position, double maxPosition)
     {
-        return Bounds.Width * position / MaxPosition;
+        return Bounds.Width * position / maxPosition;
     }
     
     private double GetY(double value)
     {
-        return Bounds.Height / 2 * (value / MaxValue) + Bounds.Height / 2;
+        return Bounds.Height / 2 - (Bounds.Height - 20) / 2 * (value / MaxValue);
     }
 }
