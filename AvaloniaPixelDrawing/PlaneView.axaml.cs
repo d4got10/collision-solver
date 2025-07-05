@@ -69,6 +69,7 @@ public partial class PlaneView : UserControl
 
     public void Update(SimulationState[] history)
     {
+        PlaneCanvas.ViewModel = ViewModel;
         PlaneCanvas.Update(history, ViewModel.LastTime, ViewModel.MaxPosition);
         UpdateInfo();
     }

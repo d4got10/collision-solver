@@ -45,6 +45,10 @@
       <DependentUpon>BorderConditionsView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="GradientScaleControl.axaml.cs">
+      <DependentUpon>GradientScaleControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

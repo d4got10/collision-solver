@@ -22,6 +22,7 @@ public class SimulationViewModel : INotifyPropertyChanged
         set => SetField(ref _selectedGraphTime, value);
     }
 
+    public Guid TaskId { get; set; }
     public string TaskName { get; set; } = "";
     public double SpeedA => Math.Sqrt((Lambda + 2 * Mu + 2 * V) / Ro);
     public double SpeedB => Math.Sqrt((Lambda + 2 * Mu - 2 * V) / Ro);
@@ -36,6 +37,9 @@ public class SimulationViewModel : INotifyPropertyChanged
     public double MaxValue { get; set; }
     public SimulationState[] History { get; set; } = [];
     public BorderConditions BorderConditions { get; set; }
+    
+    public double MaxC { get; set; }
+    public double MinC { get; set; }
     
     private bool _hadError = false;
     private double _selectedGraphTime = 0;

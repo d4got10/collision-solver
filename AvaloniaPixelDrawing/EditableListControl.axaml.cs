@@ -22,6 +22,8 @@ public partial class InteractiveTextList : UserControl
         set => SetValue(ItemsSourceProperty, value);
     }
 
+    public event Action<TaskInfo>? OnCardClick = null;
+
     public InteractiveTextList()
     {
         InitializeComponent();
@@ -39,6 +41,8 @@ public partial class InteractiveTextList : UserControl
         if (sender is Button { CommandParameter: TaskInfo itemValue })
         {
             Console.WriteLine($"Клик по карточке: {itemValue.Id}");
+
+            OnCardClick?.Invoke(itemValue);
         }
     }
 

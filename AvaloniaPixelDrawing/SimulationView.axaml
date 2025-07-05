@@ -24,6 +24,12 @@
                                                         Width="{Binding #PlaneCanvas.Bounds.Width}" 
                                                         Height="{Binding #PlaneCanvas.Bounds.Height}" />
                         <TextBlock IsVisible="{Binding HadError}" Foreground="Red">ERROR</TextBlock>
+                        <Grid Width="{Binding #PlaneCanvas.Bounds.Width}" 
+                              Height="{Binding #PlaneCanvas.Bounds.Height}"
+                              RowDefinitions="*,8*,*">
+                                <avaloniaPixelDrawing:GradientScaleControl Grid.Row="1" Name="GradientView"/>
+                        </Grid>
+                        
                 </Canvas>
         </Grid>
 </UserControl>

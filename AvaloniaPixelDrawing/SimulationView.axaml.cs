@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using MyDiplomaSolver;
 
@@ -43,11 +42,17 @@ public partial class SimulationView : UserControl
             ViewModel.SelectedGraphTime = lastTime / 2;
         }
 
+        ViewModel.MaxC = history.Max(x => x.Segments.Max(s => s.Coefficients.C));
+        ViewModel.MinC = history.Min(x => x.Segments.Min(s => s.Coefficients.C));
+
         ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
 
         UpdateGraph();
         
         PlaneView.Update(history);
+        GradientView.StartValue = history.Max(x => x.Segments.Max(s => s.Coefficients.C)).ToString("F6");
+        GradientView.EndValue = history.Min(x => x.Segments.Min(s => s.Coefficients.C)).ToString("F6");
+        GradientView.InvalidateVisual();
         BorderConditionsView.BorderConditions = ViewModel.BorderConditions;
     }
 

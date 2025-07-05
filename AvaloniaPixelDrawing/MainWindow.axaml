@@ -28,38 +28,38 @@
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         Text="Параметры материала"/>
-                                <Grid ColumnDefinitions="*,2*">
+                                <Grid ColumnDefinitions="4*,*">
                                         <TextBlock Grid.Column="0"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"
-                                                   Text="1-ый упругий модуль Лама" />
+                                                   Text="1-ый упругий модуль Лама, ГПа" />
                                         <TextBox Grid.Column="1"
                                                  IsEnabled="False"
                                                  Name="ValueLambdaInput"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,2*">
+                                <Grid ColumnDefinitions="4*,*">
                                         <TextBlock Grid.Column="0"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"
-                                                   Text="2-ой упругий модуль Лама" />
+                                                   Text="2-ой упругий модуль Лама, ГПа" />
                                         <TextBox Grid.Column="1"
                                                  Name="ValueMuInput"
                                                  IsEnabled="False"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,2*">
+                                <Grid ColumnDefinitions="4*,*">
                                         <TextBlock Grid.Column="0"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"
-                                                   Text="Разнопрочность" />
+                                                   Text="Разнопрочность, ГПа" />
                                         <TextBox Grid.Column="1"
                                                  Name="ValueVInput"
                                                  IsEnabled="False"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,2*">
+                                <Grid ColumnDefinitions="4*,*">
                                         <TextBlock Grid.Column="0"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"
-                                                   Text="Плотность" />
+                                                   Text="Плотность, кг/м3" />
                                         <TextBox Grid.Column="1"
                                                  Name="ValueRoInput"
                                                  IsEnabled="False"/>

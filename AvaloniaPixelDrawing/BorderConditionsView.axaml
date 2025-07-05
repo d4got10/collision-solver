@@ -10,10 +10,10 @@
                VerticalAlignment="Stretch" 
                Width="{Binding #GraphParentCanvas.Bounds.Width}"
                Height="{Binding #GraphParentCanvas.Bounds.Height}">
-            <TextBlock Text="u0(t)" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-            <TextBlock Name="MaxValueText" Text="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-            <TextBlock Text="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <TextBlock Name="MinValueText" Text="-0" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+            <TextBlock Text="u0(t)" HorizontalAlignment="Right" VerticalAlignment="Top" IsHitTestVisible="False"/>
+            <TextBlock Name="MaxValueText" Text="0" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+            <TextBlock Text="0" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"/>
+            <TextBlock Name="MinValueText" Text="-0" HorizontalAlignment="Left" VerticalAlignment="Bottom" IsHitTestVisible="False"/>
         </Panel>
     </Canvas>
 </UserControl>
