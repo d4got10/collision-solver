@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using Avalonia.Controls;
-using MyDiplomaSolver;
+using Solver;
 
 namespace AvaloniaPixelDrawing;
 

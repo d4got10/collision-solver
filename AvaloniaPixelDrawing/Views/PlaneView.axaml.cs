@@ -3,7 +3,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using MyDiplomaSolver;
+using Solver;
 
 namespace AvaloniaPixelDrawing;
 

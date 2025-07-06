@@ -1,4 +1,4 @@
-﻿namespace MyDiplomaSolver;
+﻿namespace Solver;
 
 public readonly record struct SimulationState(
     Wave[] Waves,

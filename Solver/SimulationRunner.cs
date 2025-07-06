@@ -1,4 +1,4 @@
-﻿namespace MyDiplomaSolver;
+﻿namespace Solver;
 
 public class SimulationRunner
 {

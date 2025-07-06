@@ -3,7 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
-using MyDiplomaSolver;
+using Solver;
 
 namespace AvaloniaPixelDrawing;
 

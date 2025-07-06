@@ -1,5 +1,5 @@
 ﻿using System;
-using MyDiplomaSolver;
+using Solver;
 
 namespace AvaloniaPixelDrawing;
 

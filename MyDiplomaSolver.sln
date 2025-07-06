@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiplomaSolver", "MyDiplomaSolver\MyDiplomaSolver.csproj", "{B0C4CA1A-BEB6-4B48-9F7A-DE38F35A6E19}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solver", "Solver\Solver.csproj", "{B0C4CA1A-BEB6-4B48-9F7A-DE38F35A6E19}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaPixelDrawing", "AvaloniaPixelDrawing\AvaloniaPixelDrawing.csproj", "{239CEFC5-ED02-4064-A138-FC1B08261F9E}"
 EndProject

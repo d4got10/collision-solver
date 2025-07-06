@@ -21,37 +21,41 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="PlaneCanvas.axaml.cs">
-      <DependentUpon>PixelCanvas.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="PlaneView.axaml.cs">
-      <DependentUpon>PlaneView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="GraphView.axaml.cs">
-      <DependentUpon>ControlView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="SimulationView.axaml.cs">
+    <Compile Update="Views\SimulationView.axaml.cs">
       <DependentUpon>SimulationView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="EditableListControl.axaml.cs">
-      <DependentUpon>EditableListControl.axaml</DependentUpon>
+    <Compile Update="Views\PlaneView.axaml.cs">
+      <DependentUpon>PlaneView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="BorderConditionsView.axaml.cs">
+    <Compile Update="Views\PlaneCanvas.axaml.cs">
+      <DependentUpon>PlaneCanvas.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\MainWindow.axaml.cs">
+      <DependentUpon>MainWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\GraphView.axaml.cs">
+      <DependentUpon>GraphView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\BorderConditionsView.axaml.cs">
       <DependentUpon>BorderConditionsView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="GradientScaleControl.axaml.cs">
+    <Compile Update="Controls\GradientScaleControl.axaml.cs">
       <DependentUpon>GradientScaleControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\EditableListControl.axaml.cs">
+      <DependentUpon>EditableListControl.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyDiplomaSolver\MyDiplomaSolver.csproj" />
+    <ProjectReference Include="..\Solver\Solver.csproj" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using MathNet.Numerics.RootFinding;
+﻿using MathNet.Numerics.RootFinding;
 
-namespace MyDiplomaSolver;
+namespace Solver;
 
 public class Simulation
 {

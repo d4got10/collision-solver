@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using MyDiplomaSolver;
+using Solver;
 
 namespace AvaloniaPixelDrawing;
 
