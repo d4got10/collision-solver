@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaPixelDrawing="clr-namespace:UI"
+             xmlns:controls="clr-namespace:UI.Controls"
+             xmlns:controls1="clr-namespace:UI.Controls"
+             x:Class="UI.Views.GraphView">
+    <Canvas x:Name="GraphParentCanvas">
+        <controls1:GraphControl Name="GraphControl"
+                                           Width="{Binding #GraphParentCanvas.Bounds.Width}"
+                                           Height="{Binding #GraphParentCanvas.Bounds.Height}"/>
+        <Panel HorizontalAlignment="Stretch" 
+               VerticalAlignment="Stretch" 
+               Width="{Binding #GraphParentCanvas.Bounds.Width}"
+               Height="{Binding #GraphParentCanvas.Bounds.Height}">
+            <TextBlock Text="e(x, t)" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+            <TextBlock Name="MaxValueText" Text="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBlock Text="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBlock Text="X" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <TextBlock Name="MinValueText" Text="-0" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+        </Panel>
+        <Line x:Name="VerticalLine" 
+              Stroke="Gray" 
+              StrokeThickness="1" 
+              StartPoint="0,200"
+              EndPoint="200,200"/>
+    </Canvas>
+</UserControl>

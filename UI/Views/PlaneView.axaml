@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaPixelDrawing="clr-namespace:UI"
+             xmlns:views="clr-namespace:UI.Views"
+             xmlns:viewModels="clr-namespace:UI.ViewModels"
+             xmlns:views1="clr-namespace:UI.Views"
+             x:Class="UI.Views.PlaneView"
+             x:DataType="viewModels:SimulationViewModel">
+    <Canvas x:Name="PlaneParentCanvas">
+        <views1:PlaneCanvas Name="PlaneCanvas"
+                                          Width="{Binding #PlaneParentCanvas.Bounds.Width}"
+                                          Height="{Binding #PlaneParentCanvas.Bounds.Height}"/>
+        <Line x:Name="VerticalLine" 
+              Stroke="Blue" 
+              StrokeThickness="1" 
+              StartPoint="0,0" 
+              EndPoint="0,0"
+              IsVisible="False"/>
+        
+        <Line x:Name="SelectedVerticalLine" 
+              Stroke="Black" 
+              StrokeThickness="1"/>
+        
+        <TextBlock x:Name="SelectedTime"
+                 Foreground="Black"
+                 Text="0.0"/>
+        <TextBlock x:Name="WaveCount"
+                   Foreground="Black"
+                   Canvas.Top="20"
+                   Text="0"
+                   IsVisible="False"/>
+    </Canvas>
+</UserControl>

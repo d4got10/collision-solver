@@ -1,6 +1,7 @@
 ﻿using MathNet.Numerics.RootFinding;
+using Solver.Extensions;
 
-namespace Solver;
+namespace Solver.Models;
 
 public class Simulation
 {
@@ -62,7 +63,6 @@ public class Simulation
                 {
                     Console.WriteLine($"Получена ошибка при расчёте столкновения волн: {exception.Message}");
                     ErrorTime = collision.EncounterTime;
-                    HadErrors = true;
                     return false;
                 }
             }
@@ -73,7 +73,6 @@ public class Simulation
         {
             Console.WriteLine($"Получена ошибка при итерации: {exception.Message}");
             ErrorTime = State.Time;
-            HadErrors = true;
             return false;
         }
     }

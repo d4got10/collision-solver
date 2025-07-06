@@ -1,4 +1,7 @@
-﻿namespace Solver;
+﻿using Solver.Extensions;
+using Solver.Models;
+
+namespace Solver;
 
 public class SimulationRunner
 {

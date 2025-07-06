@@ -1,4 +1,4 @@
-﻿namespace Solver;
+﻿namespace Solver.Models;
 
 public readonly record struct Wave(
     int Id,

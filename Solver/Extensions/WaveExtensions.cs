@@ -1,4 +1,6 @@
-﻿namespace Solver;
+﻿using Solver.Models;
+
+namespace Solver.Extensions;
 
 public static class WaveExtensions
 {    

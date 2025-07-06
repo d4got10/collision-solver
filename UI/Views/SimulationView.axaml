@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaPixelDrawing="clr-namespace:UI"
+             xmlns:views="clr-namespace:UI.Views"
+             xmlns:controls="clr-namespace:UI.Controls"
+             xmlns:viewModels="clr-namespace:UI.ViewModels"
+             xmlns:views1="clr-namespace:UI.Views"
+             xmlns:controls1="clr-namespace:UI.Controls"
+             x:Class="UI.Views.SimulationView"
+             x:DataType="viewModels:SimulationViewModel">
+        <Grid>
+                <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="3*" />
+                </Grid.RowDefinitions>
+                
+                <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <views1:GraphView Name="GraphView" Grid.Row="0" Grid.Column="0" BorderBrush="Black" BorderThickness="3"/>
+                        <views1:BorderConditionsView Name="BorderConditionsView" Grid.Row="0" Grid.Column="1" BorderBrush="Black" BorderThickness="3" />
+                </Grid>
+                
+                <Canvas Grid.Row="1" Name="PlaneCanvas">
+                        <views1:PlaneView Name="PlaneView"
+                                                        Width="{Binding #PlaneCanvas.Bounds.Width}" 
+                                                        Height="{Binding #PlaneCanvas.Bounds.Height}" />
+                        <TextBlock IsVisible="{Binding HadError}" Foreground="Red">ERROR</TextBlock>
+                        <Grid Width="{Binding #PlaneCanvas.Bounds.Width}" 
+                              Height="{Binding #PlaneCanvas.Bounds.Height}"
+                              RowDefinitions="*,8*,*">
+                                <controls1:GradientScaleControl Grid.Row="1" Name="GradientView"/>
+                        </Grid>
+                        
+                </Canvas>
+        </Grid>
+</UserControl>
